@@ -11,4 +11,4 @@
 
 ##Hello
 
-## Arsyad is trying again cuz I'm dumb
+## Arsyad is trying again cuz I'm dumbs
