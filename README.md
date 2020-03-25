@@ -11,4 +11,4 @@
 
 ##Hello
 
-##Thanks a lot xD
+## Arsyad is trying again cuz I'm dumb
