@@ -5,10 +5,10 @@
 
 ## I am adding things -- Yunjia
 
-## Our flag will always fly! -- Queen of Arendelle
+## Our flag will always fly! - Queen of Arendelle
 
 ## Add something
 
-##Hello
+## Hello
 
-##Thanks a lot xD
+## Arsyad is Trying
