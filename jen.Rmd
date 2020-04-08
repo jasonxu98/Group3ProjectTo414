@@ -1,0 +1,92 @@
+---
+title: "final project"
+author: "Jen Lyn Chung"
+date: "4/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#pet Cleaning
+```{r}
+pet <- read.csv("train.csv")
+pet$Name <- NULL
+pet$State <- NULL
+pet$RescuerID <- NULL
+pet$Description <- NULL
+pet$PetID <- NULL
+
+pet$Type <- as.factor(pet$Type)
+pet$Breed1 <- as.factor(pet$Breed1)
+pet$Gender <- as.factor(pet$Gender)
+pet$MaturitySize <- as.factor(pet$MaturitySize)
+pet$FurLength <- as.factor(pet$FurLength)
+pet$Vaccinated <- as.factor(pet$Vaccinated)
+pet$Dewormed <- as.factor(pet$Dewormed)
+pet$Sterilized <- as.factor(pet$Sterilized)
+pet$Health <- as.factor(pet$Health)
+
+
+pet$mixedbreed <- ifelse(pet$Breed2 == 0, 0,1)
+pet$Breed2 <- NULL
+pet$mixedbreed <- as.factor(pet$mixedbreed)
+str(pet)
+
+```
+
+#Building model
+```{r}
+lmodel <- lm( AdoptionSpeed ~. , data = pet)
+summary(lmodel)
+
+lmodel2 <- lm( AdoptionSpeed ~ Type + Age + Gender + Color1 + Color2 + Color3 + MaturitySize + FurLength + Vaccinated + Dewormed + Sterilized + Health + Quantity + PhotoAmt + mixedbreed , data = pet)
+summary(lmodel2)
+```
+
+```{r}
+set.seed(3)
+trainid <- sample(1:nrow(pet), .8*nrow(pet))
+train <- pet[trainid,]
+test <- pet[-trainid,]
+train_labels <- train$AdoptionSpeed
+test_labels <- test$AdoptionSpeed
+```
+
+
+```{r}
+library(class)
+test_pred <- knn(train = train, test = test,
+                      cl = train_labels, k=109)
+library(gmodels)
+CrossTable(x = test_labels, y = test_pred, 
+           prop.chisq=FALSE)
+```
+
+
+```{r}
+library(kernlab)
+svmmodel <- ksvm(AdoptionSpeed ~ ., data = train,
+                          kernel = "vanilladot")
+
+# look at basic information about the model
+svmmodel
+
+```
+
+```{r}
+svmpred <- predict(svmmodel, test)
+
+head(svm)
+
+table(svmpred, test$AdoptionSpeed)
+
+# look only at agreement vs. non-agreement
+# construct a vector of TRUE/FALSE indicating correct/incorrect predictions
+agreement <- svmpred == test$AdoptionSpeed
+table(agreement)
+prop.table(table(agreement))
+
+```
+
