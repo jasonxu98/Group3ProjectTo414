@@ -12,6 +12,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Background
 
 ## Data
+```{r}
+data <- read.csv("train.csv")
+str(data)
+```
 
 ## Regression model
 
