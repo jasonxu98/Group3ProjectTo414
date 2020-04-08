@@ -1,0 +1,141 @@
+## Visualizing Performance Tradeoffs ----
+sms_results <- read.csv("sms_results.csv")
+head(sms_results)
+head(subset(sms_results, actual_type != predict_type))
+
+
+library(ROCR)
+pred <- prediction(predictions = sms_results$prob_spam,
+                   labels = sms_results$actual_type)
+
+# ROC curves
+perf <- performance(pred, measure = "tpr", x.measure = "fpr")
+plot(perf, main = "ROC curve for SMS spam filter", col = "blue", lwd = 2)
+
+# add a reference line to the graph
+abline(a = 0, b = 1, lwd = 2, lty = 2)
+
+# calculate AUC
+perf.auc <- performance(pred, measure = "auc")
+str(perf.auc)
+as.numeric(perf.auc@y.values)
+
+# 10-fold CV
+folds <- createFolds(credit$default, k = 10)
+str(folds)
+credit01_train <- credit[folds$Fold01, ]
+credit01_test <- credit[-folds$Fold01, ]
+
+## Automating 10-fold CV for a C5.0 Decision Tree using lapply() ----
+library(caret)
+library(C50)
+library(irr)
+
+set.seed(123)
+folds <- createFolds(credit$default, k = 10)
+
+cv_results <- lapply(folds, function(x) {
+  credit_train <- credit[x, ]
+  credit_test <- credit[-x, ]
+  credit_model <- C5.0(default ~ ., data = credit_train)
+  credit_pred <- predict(credit_model, credit_test)
+  credit_actual <- credit_test$default
+  kappa <- kappa2(data.frame(credit_actual, credit_pred))$value
+  return(kappa)
+})
+
+str(cv_results)
+mean(unlist(cv_results))
+
+
+##### Improving Model Performance -------------------
+
+# load the credit dataset
+credit <- read.csv("credit.csv")
+library(caret)
+
+## Creating a simple tuned model ----
+# automated parameter tuning of C5.0 decision tree 
+set.seed(300)
+m <- train(default ~ ., data = credit, method = "C5.0")
+
+# summary of tuning results
+m
+
+# apply the best C5.0 candidate model to make predictions
+p <- predict(m, credit)
+table(p, credit$default)
+
+# obtain predicted classes
+head(predict(m, credit, type = "raw"))
+
+# obtain predicted probabilities
+head(predict(m, credit, type = "prob"))
+
+## Customizing the tuning process ----
+# use trainControl() to alter resampling strategy
+ctrl <- trainControl(method = "cv", number = 10,
+                     selectionFunction = "oneSE")
+
+# use expand.grid() to create grid of tuning parameters
+grid <- expand.grid(.model = "tree",
+                    .trials = c(1, 5, 10, 15, 20, 25, 30, 35),
+                    .winnow = "FALSE")
+
+# look at the result of expand.grid()
+grid
+
+# customize train() with the control list and grid of parameters 
+set.seed(300)
+m <- train(default ~ ., data = credit, method = "C5.0",
+           metric = "Kappa",
+           trControl = ctrl,
+           tuneGrid = grid)
+m
+
+## Bagging ----
+# Using the ipred bagged decision trees
+library(ipred)
+set.seed(300)
+mybag <- bagging(default ~ ., data = credit, nbagg = 25)
+credit_pred <- predict(mybag, credit)
+table(credit_pred, credit$default)
+
+# estimate performance of ipred bagged trees
+library(caret)
+set.seed(300)
+ctrl <- trainControl(method = "cv", number = 10)
+train(default ~ ., data = credit, method = "treebag",
+      trControl = ctrl)
+
+
+## Random Forests ----
+# random forest with default settings
+library(randomForest)
+set.seed(300)
+rf <- randomForest(default ~ ., data = credit)
+rf
+
+library(caret)
+ctrl <- trainControl(method = "repeatedcv",
+                     number = 10, repeats = 10)
+
+# auto-tune a random forest
+grid_rf <- expand.grid(.mtry = c(2, 4, 8, 16))
+
+set.seed(300)
+m_rf <- train(default ~ ., data = credit, method = "rf",
+              metric = "Kappa", trControl = ctrl,
+              tuneGrid = grid_rf)
+m_rf
+
+# auto-tune a boosted C5.0 decision tree
+grid_c50 <- expand.grid(.model = "tree",
+                        .trials = c(10, 20, 30, 40),
+                        .winnow = "FALSE")
+
+set.seed(300)
+m_c50 <- train(default ~ ., data = credit, method = "C5.0",
+                metric = "Kappa", trControl = ctrl,
+               tuneGrid = grid_c50)
+m_c50
