@@ -24,6 +24,9 @@ data$PetID <- NULL
 ```
 
 ## Regression model
+```{r}
+
+```
 
 ## Prediction model
 
