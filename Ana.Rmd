@@ -52,7 +52,7 @@ test_labels <- test$AdoptionSpeed
 ```{r}
 library(class)
 test_pred <- knn(train = train, test = test,
-                      cl = train_labels, k=5)
+                      cl = train_labels, k=4)
 ```
 ```{r}
 library(gmodels)
