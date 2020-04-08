@@ -1,0 +1,1 @@
+{"frames":[{"character_number":0,"end_character_number":0,"end_line_number":0,"file":"","func":"bagging(Adoption ~ ., data = pet, nbagg = 25)","line_number":0}],"message":"Error in bagging(Adoption ~ ., data = pet, nbagg = 25) : \n  object 'pet' not found\n"}

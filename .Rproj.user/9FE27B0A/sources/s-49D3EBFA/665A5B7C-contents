@@ -1,0 +1,19 @@
+For your next (and last) group assignment, we will try something new. This time I would like you to do something different:
+
+Stage 1 - Find A Dataset: Look around online sources for good repository of business related datasets. Good places to start are Kaggle and UCI ML Repository. Googling will lead to you many other data repositories. This is the most important part - if you don't have a good/interesting/fun dataset then the rest of the project will not work. You may even want to collect/scrape your own data - we can spend some time in class about how to do web scraping if enough teams want to do this. 
+
+Stage 2 - Ask A Good Questions: Once you have landed on a good dataset, you need to ask an interesting business question that you can answer using the dataset. This is most important - so I will repeat - look for an interesting dataset that can answer an interesting business question. You need both - just having one is not sufficient. You will know whether you will be able to answer your question or not by exploring and cleaning the dataset and having a sense of whether your question can be answered using the tools we are studying in the class.
+
+Intermediate Deliverable #1: You are asked to submit a small submission detailing your dataset, your business question and your preliminary efforts to clean and explore the dataset. 
+
+Stage 3. Answer That Business Question:  I would like you to limit your tools to Linear and Logistic Regressions and the ML algorithms discussed in class. Within that restriction, you should use the tools that is most appropriate for your data. You may use more than one tool and you may combine the tools to get the most optimal result. Note that your ability to do this will really depend upon whether you were asking the right question to begin with in Stage 2 and whether you have selected the right dataset in Stage 1. This is an iterative process that may need you to revisit your Stage 1 and Stage 2 decisions. This stage is likely to be the most extensive part of your project.
+
+Intermediate Deliverable #2: In order to ensure that all teams are making good progress in their projects, all groups are asked to schedule a 20 min meeting with the instructor. A sign-up sheet will be provided for the groups to select meeting slots. Groups are expected to come to the meeting with at least a draft/attempt at Stage 2 above. 
+
+Stage 4. Submission of Final Deliverable: There are two final deliverables: a project report in the form of  an RMD file and its HTML output. A class presentation to be done in the last week of the semester. 
+
+This assignment is open ended by design. I would like you to explore the domain of data science and get a feel of what is happening out there. I am giving you a blank canvas - fill it with how you feel fit. 
+
+Let me know if you have any questions.
+
+Sanjeev

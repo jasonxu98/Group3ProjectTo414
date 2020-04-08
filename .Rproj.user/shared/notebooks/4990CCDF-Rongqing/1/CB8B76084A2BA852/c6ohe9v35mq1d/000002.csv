@@ -1,0 +1,5 @@
+"0","mybag <- bagging(Adoption~ ., data = pet, nbagg = 25)
+"
+"2","Error in bagging(Adoption ~ ., data = pet, nbagg = 25) : 
+  object 'pet' not found
+"

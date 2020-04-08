@@ -1,0 +1,87 @@
+---
+title: "Project 3"
+author: "Arsyad Asnawi"
+date: "4/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Getting Datasets and Packages
+```{r}
+pet <- read.csv("petfinder.csv")
+state <- read.csv("state_labels.csv")
+color <- read.csv("ColorLabels.csv")
+breed <- read.csv("BreedLabels.csv")
+```
+
+## Data Cleaning
+```{r}
+pet$Name <- NULL
+pet$State <- NULL
+pet$RescuerID <- NULL
+pet$Description <- NULL
+pet$PetID <- NULL
+
+pet$Type <- as.factor(pet$Type)
+pet$Breed1 <- as.factor(pet$Breed1)
+pet$Gender <- as.factor(pet$Gender)
+pet$MaturitySize <- as.factor(pet$MaturitySize)
+pet$FurLength <- as.factor(pet$FurLength)
+pet$Vaccinated <- as.factor(pet$Vaccinated)
+pet$Dewormed <- as.factor(pet$Dewormed)
+pet$Sterilized <- as.factor(pet$Sterilized)
+pet$Health <- as.factor(pet$Health)
+
+
+pet$mixedbreed <- ifelse(pet$Breed2 == 0, 0,1)
+pet$Breed2 <- NULL
+pet$mixedbreed <- as.factor(pet$mixedbreed)
+pet$AdoptionSpeedDummy <- pet$AdoptionSpeed
+pet$AdoptionSpeed <- NULL
+str(pet)
+```
+## Randomize Data
+```{r}
+pet_random <- pet[sample(nrow(pet)), ]
+```
+
+
+## Model Matrix
+```{r}
+petmm <- as.data.frame(model.matrix(~ . , data = pet_random))
+str(petmm)
+```
+
+
+## Normalization
+```{r}
+normalize <- function(x) { 
+  return((x - min(x)) / (max(x) - min(x)))
+}
+
+```
+
+```{r}
+set.seed(3)
+trainid <- sample(1:nrow(pet), .8*nrow(pet))
+train <- pet[trainid,]
+test <- pet[-trainid,]
+train_labels <- train$AdoptionSpeed
+test_labels <- test$AdoptionSpeed
+```
+
+```{r}
+library(class)
+test_pred <- knn(train = train, test = test,
+                      cl = train_labels, k=21)
+library(gmodels)
+CrossTable(x = test_labels, y = test_pred, 
+           prop.chisq=FALSE)
+```
+
+
+
+
