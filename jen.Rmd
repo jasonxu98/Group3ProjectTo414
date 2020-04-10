@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#pet Cleaning
+#Data Cleaning
 ```{r}
 pet <- read.csv("train.csv")
 pet$Name <- NULL
@@ -36,57 +36,63 @@ str(pet)
 
 ```
 
-#Building model
+#Normalize Data
 ```{r}
-lmodel <- lm( AdoptionSpeed ~. , data = pet)
-summary(lmodel)
+pet_random <- pet[sample(nrow(pet)), ]
 
-lmodel2 <- lm( AdoptionSpeed ~ Type + Age + Gender + Color1 + Color2 + Color3 + MaturitySize + FurLength + Vaccinated + Dewormed + Sterilized + Health + Quantity + PhotoAmt + mixedbreed , data = pet)
-summary(lmodel2)
+normalize <- function(x) { 
+  return((x - min(x)) / (max(x) - min(x)))
+}
+
+pet$AdoptionSpeed <- as.factor(pet$AdoptionSpeed)
+pet$AdoptSpeed <- pet$AdoptionSpeed
+pet$AdoptionSpeed <- NULL
+
+library(dummies)
+pet_dummy <- dummy.data.frame(data = pet[,-ncol(pet)],)
+
+pet_norm <- as.data.frame(lapply(pet_dummy, normalize))
+pet_norm$AdoptionSpeed <- pet$AdoptSpeed
 ```
+
 
 ```{r}
 set.seed(3)
-trainid <- sample(1:nrow(pet), .8*nrow(pet))
-train <- pet[trainid,]
-test <- pet[-trainid,]
+trainid <- sample(1:nrow(pet_norm), .8*nrow(pet_norm))
+train <- pet_norm[trainid,]
+test <- pet_norm[-trainid,]
 train_labels <- train$AdoptionSpeed
 test_labels <- test$AdoptionSpeed
 ```
 
 
-```{r}
-library(class)
-test_pred <- knn(train = train, test = test,
-                      cl = train_labels, k=109)
-library(gmodels)
-CrossTable(x = test_labels, y = test_pred, 
-           prop.chisq=FALSE)
-```
-
-
+#SVM Model
 ```{r}
 library(kernlab)
 svmmodel <- ksvm(AdoptionSpeed ~ ., data = train,
                           kernel = "vanilladot")
 
-# look at basic information about the model
-svmmodel
 
-```
-
-```{r}
 svmpred <- predict(svmmodel, test)
 
-head(svm)
+head(svmpred)
 
 table(svmpred, test$AdoptionSpeed)
 
-# look only at agreement vs. non-agreement
-# construct a vector of TRUE/FALSE indicating correct/incorrect predictions
 agreement <- svmpred == test$AdoptionSpeed
 table(agreement)
 prop.table(table(agreement))
 
 ```
+
+
+```{r}
+pet_classifier_rbf <- ksvm(AdoptionSpeed ~ Type1 + Type2 + MaturitySize1 + MaturitySize2 + MaturitySize3 + MaturitySize4 + FurLength1 + FurLength2 + FurLength3 + Vaccinated1 + Vaccinated2 + Vaccinated3 + Dewormed1 + Dewormed2 + Dewormed3 + Sterilized1 + Sterilized2 + Sterilized3 + Health1 + Health2 + Health3 + Quantity + PhotoAmt + mixedbreed0 + mixedbreed1, data = train, kernel = "rbfdot")
+pet_predictions_rbf <- predict(pet_classifier_rbf, test)
+
+agreement_rbf <- pet_predictions_rbf == test$AdoptionSpeed
+table(agreement_rbf)
+prop.table(table(agreement_rbf))
+```
+
 
