@@ -27,12 +27,15 @@ set.seed(12345)
 pet_rand <- pet[order(runif(nrow(pet))), ]
 
 nrow(pet_rand)
+str(pet_rand)
 
 trainid <- sample(1:nrow(pet_rand), .8*nrow(pet_rand))
 
 pet_train <- pet_rand[trainid,]
 pet_test <- pet_rand[-trainid,]
 
+nrow(pet_train)
+nrow(pet_test)
 # check the proportion of class variable
 prop.table(table(pet_train$AdoptionSpeed))
 prop.table(table(pet_test$AdoptionSpeed))
@@ -41,11 +44,8 @@ prop.table(table(pet_test$AdoptionSpeed))
 ```{r}
 # Train a model
 library(C50)
-pet_model <- C5.0(pet_train[-17], pet_train$AdoptionSpeed)
+pet_model <- C5.0(pet_train[-19], pet_train$AdoptionSpeed)
 
-pet_model
-
-summary(pet_model)
 ```
 
 ```{r}
@@ -57,19 +57,25 @@ library(gmodels)
 CrossTable(pet_test$AdoptionSpeed, pet_pred,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('actual default', 'predicted default'))
+
+agreement <- pet_pred == pet_test$AdoptionSpeed
+table(agreement)
+prop.table(table(agreement)) 
 ```
 
 ```{r}
 ## Boosting the accuracy of decision trees
 # boosted decision tree with 10 trials
-pet_boost10 <- C5.0(pet_train[-17], pet_train$AdoptionSpeed,
+pet_boost10 <- C5.0(pet_train[-19], pet_train$AdoptionSpeed,
                        trials = 10)
-pet_boost10
-summary(pet_boost10)
 
 pet_boost10_pred <- predict(pet_boost10, pet_test)
 CrossTable(pet_test$AdoptionSpeed, pet_boost10_pred,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('actual default', 'predicted default'))
+
+agreement <- pet_boost10_pred == pet_test$AdoptionSpeed
+table(agreement)
+prop.table(table(agreement)) 
 ```
 
