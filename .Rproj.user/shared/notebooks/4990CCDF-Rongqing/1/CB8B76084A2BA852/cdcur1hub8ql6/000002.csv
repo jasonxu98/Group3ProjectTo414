@@ -1,7 +1,0 @@
-"0",""
-"0","set.seed(3)"
-"0","trainid <- sample(1:nrow(pet), .8*nrow(pet))"
-"0","train <- pet[trainid,]"
-"0","test <- pet[-trainid,]"
-"0","train_labels <- train$Adoption"
-"0","test_labels <- test$Adoption"

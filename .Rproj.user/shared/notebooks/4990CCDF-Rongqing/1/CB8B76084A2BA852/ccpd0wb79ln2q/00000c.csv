@@ -1,9 +1,0 @@
-"0","# 10-fold CV
-library(caret)
-"
-"2","Loading required package: lattice
-"
-"2","Error in value[[3L]](cond) : 
-  Package ‘lattice’ version 0.20.38 cannot be unloaded:
- Error in unloadNamespace(package) : namespace ‘lattice’ is imported by ‘Matrix’ so cannot be unloaded
-"

@@ -1,0 +1,75 @@
+---
+title: "Random forest and decision tree"
+author: "Yunjia Xu"
+date: "4/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# prepare data
+```{r}
+pet <- read.csv("train.csv")
+str(pet)
+pet$Name <- NULL
+pet$State <- NULL
+pet$RescuerID <- NULL
+pet$Description <- NULL
+pet$PetID <- NULL
+
+pet$AdoptionSpeed <- as.factor(pet$AdoptionSpeed)
+```
+
+```{r}
+set.seed(12345)
+pet_rand <- pet[order(runif(nrow(pet))), ]
+
+nrow(pet_rand)
+
+trainid <- sample(1:nrow(pet_rand), .8*nrow(pet_rand))
+
+pet_train <- pet_rand[trainid,]
+pet_test <- pet_rand[-trainid,]
+
+# check the proportion of class variable
+prop.table(table(pet_train$AdoptionSpeed))
+prop.table(table(pet_test$AdoptionSpeed))
+```
+
+```{r}
+# Train a model
+library(C50)
+pet_model <- C5.0(pet_train[-17], pet_train$AdoptionSpeed)
+
+pet_model
+
+summary(pet_model)
+```
+
+```{r}
+# Evaluating model
+pet_pred <- predict(pet_model, pet_test)
+
+
+library(gmodels)
+CrossTable(pet_test$AdoptionSpeed, pet_pred,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('actual default', 'predicted default'))
+```
+
+```{r}
+## Boosting the accuracy of decision trees
+# boosted decision tree with 10 trials
+pet_boost10 <- C5.0(pet_train[-17], pet_train$AdoptionSpeed,
+                       trials = 10)
+pet_boost10
+summary(pet_boost10)
+
+pet_boost10_pred <- predict(pet_boost10, pet_test)
+CrossTable(pet_test$AdoptionSpeed, pet_boost10_pred,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('actual default', 'predicted default'))
+```
+
