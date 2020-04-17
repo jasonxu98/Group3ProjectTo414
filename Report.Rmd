@@ -22,7 +22,8 @@ CONTENTS:
 4. Conclusion
 
 
-## Background
+## Introduction
+Pet adoption problem has recently drawn people's attention, as more people want to adopt a pet during the global pandemic. It is important for animal shelters and related business to predict how soon the pets can find their owner. We want to build data models using R to help with the predictions. The dataset to moltivate this stuty is from https://www.kaggle.com/c/petfinder-adoption-prediction/data, which contain data for cats and dogs. Specifically, we want to predict how soon a pet can be adopted, based on various features including type, gender, health, etc.
 
 ## Data Cleaning
 
