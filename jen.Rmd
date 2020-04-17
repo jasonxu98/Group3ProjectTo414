@@ -38,6 +38,8 @@ str(pet)
 
 #Normalize Data
 ```{r}
+
+pet$AdoptionSpeed <- ifelse(pet$AdoptionSpeed == 0 | pet$AdoptionSpeed == 1 | pet$AdoptionSpeed == 2, 0,1 )
 pet_random <- pet[sample(nrow(pet)), ]
 
 normalize <- function(x) { 
