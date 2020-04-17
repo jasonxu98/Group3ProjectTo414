@@ -19,7 +19,7 @@ CONTENTS:
     + [Decision Tree]
     + [Bagging]
     + [Stacked Model]
-4. Conclusion
+4. [Conclusion]
 
 
 ## Introduction
