@@ -38,6 +38,7 @@ Pet adoption problem has recently drawn people's attention, as more people want 
 
 #### What is the most popular name for pets ?
 ```{r}
+pet <- read.csv("train.csv")
 library(dplyr)
 catbyname <- pet %>% filter(Type == 2 & Name != "" & Name != "No Name")%>% group_by(Name) %>% summarize(total = n(), avg_speed = mean(AdoptionSpeed)) %>% arrange(desc(total)) %>% slice(1:10)
 catbyname
@@ -272,12 +273,12 @@ predicted <- ann_result$net.result
 summary(predicted)
 ann_pred <- ifelse(predicted > mean(predicted) , 1, 0)
 
-library(caret)
 
 pet_cM_ann <- confusionMatrix(as.factor(ann_pred), as.factor(anntest_labels))
 
 ann_acc <- mean(ann_pred == anntest_labels)
 ann_acc
+
 
 ```
 
@@ -339,7 +340,13 @@ bag_pred <- predict(mybag, test)
 table(bag_pred, test$AdoptionSpeed)
 bag_acc <- mean(bag_pred ==test_labels)
 bag_acc
+
+library(caret)
+ctrl <- trainControl(method = "cv", number = 10)
+train(AdoptionSpeed ~ ., data = test, method = "treebag",
+      trControl = ctrl)
 ```
+The mode's accuracy is 0.6205, which seems to have fit the training data well. And the kappa statistic of 0.21 for this model suggests that the bagged tree model performs on par with our C5.0 decision tree.
 
 ### Stacked Model
 ```{r}
