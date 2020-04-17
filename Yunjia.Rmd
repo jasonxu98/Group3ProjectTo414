@@ -19,6 +19,9 @@ pet$RescuerID <- NULL
 pet$Description <- NULL
 pet$PetID <- NULL
 
+# Reclassify the pet adoption speed, "0" means being adopted within one month, and "1" means needing more than one month
+pet$AdoptionSpeed <- ifelse(pet$AdoptionSpeed == 0 | pet$AdoptionSpeed == 1 | pet$AdoptionSpeed == 2, 0,1 )
+
 pet$AdoptionSpeed <- as.factor(pet$AdoptionSpeed)
 ```
 
