@@ -8,7 +8,6 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
 #Data Cleaning
 ```{r}
 pet <- read.csv("train.csv")
@@ -27,7 +26,6 @@ pet$Vaccinated <- as.factor(pet$Vaccinated)
 pet$Dewormed <- as.factor(pet$Dewormed)
 pet$Sterilized <- as.factor(pet$Sterilized)
 pet$Health <- as.factor(pet$Health)
-pet$AdoptionSpeed<- as.factor(pet$AdoptionSpeed)
 
 
 pet$mixedbreed <- ifelse(pet$Breed2 == 0, 0,1)
@@ -37,13 +35,33 @@ str(pet)
 
 ```
 
+#Normalize Data
+```{r}
+
+pet$AdoptionSpeed <- ifelse(pet$AdoptionSpeed == 0 | pet$AdoptionSpeed == 1 | pet$AdoptionSpeed == 2, 0,1 )
+pet_random <- pet[sample(nrow(pet)), ]
+
+normalize <- function(x) { 
+  return((x - min(x)) / (max(x) - min(x)))
+}
+
+pet$AdoptionSpeed <- as.factor(pet$AdoptionSpeed)
+pet$AdoptSpeed <- pet$AdoptionSpeed
+pet$AdoptionSpeed <- NULL
+
+library(dummies)
+pet_dummy <- dummy.data.frame(data = pet[,-ncol(pet)],)
+
+pet_norm <- as.data.frame(lapply(pet_dummy, normalize))
+pet_norm$AdoptionSpeed <- pet$AdoptSpeed
+```
 
 
 ```{r}
 set.seed(3)
-trainid <- sample(1:nrow(pet), .8*nrow(pet))
-train <- pet[trainid,]
-test <- pet[-trainid,]
+trainid <- sample(1:nrow(pet_norm), .8*nrow(pet_norm))
+train <- pet_norm[trainid,]
+test <- pet_norm[-trainid,]
 train_labels <- train$AdoptionSpeed
 test_labels <- test$AdoptionSpeed
 ```
@@ -51,59 +69,18 @@ test_labels <- test$AdoptionSpeed
 
 ```{r}
 library(class)
-test_pred <- knn(train = train, test = test,
+knn_pred <- knn(train = train, test = test,
                       cl = train_labels, k=4)
 ```
 ```{r}
 library(gmodels)
-CrossTable(x = test_labels, y = test_pred, 
+CrossTable(x = test_labels, y = knn_pred, 
            prop.chisq=FALSE)
 ```
 
-# Linear Regression
 ```{r}
-accuracyrate<- mean(test_pred == test_labels)
-accuracyrate
-```
-
-```{r}
-pet$AdoptionSpeed<-as.numeric(pet$AdoptionSpeed)
-pet$Breed1<-as.numeric(pet$Breed1)
-
-
-set.seed(3)
-trainid <- sample(1:nrow(pet), .8*nrow(pet))
-train <- pet[trainid,]
-test <- pet[-trainid,]
-train_labels <- train$AdoptionSpeed
-test_labels <- test$AdoptionSpeed
-
-linReg<- lm(AdoptionSpeed ~. , data= train)
-# summary(linReg)
-
-
-```
-
-```{r}
-linRegResult<- predict(linReg, test)
-
-linRegPred<-ifelse(linRegResult<2,0,
-                   ifelse(linRegResult<3, 1,
-                         ifelse(linRegResult<4,2,
-                                ifelse(linRegResult<5,3,
-                                       4))))
-accuracyrate<- mean(linRegPred == test$AdoptionSpeed)
-accuracyrate
-
-```
-
-```{r}
-hh<-data.frame(
-  "Actual" = test$AdoptionSpeed,
-  "Predicted"= linRegPred
-)
-
-head(hh)
+knn_acc<- mean(knn_pred == test_labels)
+knn_acc
 ```
 
 

@@ -19,10 +19,10 @@ pet$Description <- NULL
 pet$PetID <- NULL
 
 pet$Type <- as.factor(pet$Type)
-#pet$Breed1 <- as.factor(pet$Breed1)
+pet$Breed1 <- as.factor(pet$Breed1)
 pet$Gender <- as.factor(pet$Gender)
 pet$MaturitySize <- as.factor(pet$MaturitySize)
-#pet$FurLength <- as.factor(pet$FurLength)
+pet$FurLength <- as.factor(pet$FurLength)
 pet$Vaccinated <- as.factor(pet$Vaccinated)
 pet$Dewormed <- as.factor(pet$Dewormed)
 pet$Sterilized <- as.factor(pet$Sterilized)
@@ -36,11 +36,53 @@ str(pet)
 
 ```
 
-## Bagging ----
+#Normalize Data
+```{r}
+
+pet$AdoptionSpeed <- ifelse(pet$AdoptionSpeed == 0 | pet$AdoptionSpeed == 1 | pet$AdoptionSpeed == 2, 0,1 )
+pet_random <- pet[sample(nrow(pet)), ]
+
+normalize <- function(x) { 
+  return((x - min(x)) / (max(x) - min(x)))
+}
+
+pet$AdoptionSpeed <- as.factor(pet$AdoptionSpeed)
+pet$AdoptSpeed <- pet$AdoptionSpeed
+pet$AdoptionSpeed <- NULL
+
+library(dummies)
+pet_dummy <- dummy.data.frame(data = pet[,-ncol(pet)],)
+
+pet_norm <- as.data.frame(lapply(pet_dummy, normalize))
+pet_norm$AdoptionSpeed <- pet$AdoptSpeed
+```
+
 
 ```{r}
-pet$AdoptionSpeed <- as.factor(pet$AdoptionSpeed)
-# Using the ipred bagged decision trees
+set.seed(3)
+trainid <- sample(1:nrow(pet_norm), .8*nrow(pet_norm))
+train <- pet_norm[trainid,]
+test <- pet_norm[-trainid,]
+train_labels <- train$AdoptionSpeed
+test_labels <- test$AdoptionSpeed
+```
+
+
+## Regression model
+
+```{r}
+glmodel <- glm(AdoptionSpeed ~. , data = pet,family = "binomial")
+summary(glmodel)
+glm_pred <- ifelse(predict(glmodel, type = "response")>0.49,1,0)
+library(caret)
+confusionMatrix(as.factor(glm_pred),pet$AdoptionSpeed)
+glm_acc <- 0.6048
+```
+From the logistic regression model, we can see that the *type*, *age*, *breed*, *gender*, *color*,* size*, *FurLength*, *Sterilized*, *Health*, *Vaccinated* and *quantity* are some important variables that influence the speed of adoption. Interestingly, we can see that cats, on average, are adopted more quickly than dogs. And it is much harder for male pets to be adopted than other genders(male and mixed). Besides, pets in medium size tends to adopt better than other size of pets. And as we thought, healthy is a key for the adoption speed. From the logistic model, sterilized and vaccinated pets in good condition will adopt much more better.
+
+
+```{r}
+# Using the ipred bagged decision trees to improve the logistic model
 library(ipred)
 set.seed(300)
 mybag <- bagging(AdoptionSpeed ~ ., data = pet, nbagg = 25)
@@ -50,8 +92,11 @@ table(pet_pred, pet$AdoptionSpeed)
 # estimate performance of ipred bagged trees
 library(caret)
 set.seed(300)
-ctrl <- trainControl(method = "cv", number = 10)
+ctrl <- trainControl(method = "cv", number = 15)
 train(AdoptionSpeed ~ ., data = pet, method = "treebag",
       trControl = ctrl)
+glm_acc <- 0.6208884
 ```
+We use the method of bagging to improve our logistic model, improving the accuracy from 60% to 62%.
+
 
