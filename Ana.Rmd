@@ -59,9 +59,55 @@ library(gmodels)
 CrossTable(x = test_labels, y = test_pred, 
            prop.chisq=FALSE)
 ```
+
+# Linear Regression
 ```{r}
 accuracyrate<- mean(test_pred == test_labels)
 accuracyrate
 ```
+
+```{r}
+pet$AdoptionSpeed<-as.numeric(pet$AdoptionSpeed)
+pet$Breed1<-as.numeric(pet$Breed1)
+
+
+set.seed(3)
+trainid <- sample(1:nrow(pet), .8*nrow(pet))
+train <- pet[trainid,]
+test <- pet[-trainid,]
+train_labels <- train$AdoptionSpeed
+test_labels <- test$AdoptionSpeed
+
+linReg<- lm(AdoptionSpeed ~. , data= train)
+# summary(linReg)
+
+
+```
+
+```{r}
+linRegResult<- predict(linReg, test)
+
+linRegPred<-ifelse(linRegResult<2,0,
+                   ifelse(linRegResult<3, 1,
+                         ifelse(linRegResult<4,2,
+                                ifelse(linRegResult<5,3,
+                                       4))))
+accuracyrate<- mean(linRegPred == test$AdoptionSpeed)
+accuracyrate
+
+```
+
+```{r}
+hh<-data.frame(
+  "Actual" = test$AdoptionSpeed,
+  "Predicted"= linRegPred
+)
+
+head(hh)
+```
+
+
+
+
 
 
