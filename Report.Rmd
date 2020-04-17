@@ -69,5 +69,24 @@ CrossTable(x = test_labels, y = test_pred,
 ```
 
 
+### Bagging
+
+```{r}
+pet$AdoptionSpeed <- as.factor(pet$AdoptionSpeed)
+# Using the ipred bagged decision trees
+library(ipred)
+set.seed(300)
+mybag <- bagging(AdoptionSpeed ~ ., data = pet, nbagg = 25)
+pet_pred <- predict(mybag, pet)
+table(pet_pred, pet$AdoptionSpeed)
+
+# estimate performance of ipred bagged trees
+library(caret)
+set.seed(300)
+ctrl <- trainControl(method = "cv", number = 10)
+train(AdoptionSpeed ~ ., data = pet, method = "treebag",
+      trControl = ctrl)
+```
+
 
 ## Conclusion
