@@ -8,15 +8,21 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
+
+```{r}
+library(kernlab)
+```
+
 CONTENTS:
 1. [Introduction]
 2. [Data Cleaning]
-3. [Prediction Models:]
+3. [Prediction Models]:
     + [Logistic Regression Model]
     + [KNN Model]
     + [SVM Model]
     + [ANN Model]
-    + [Decision Tree]
+    + [Decision Tree]       
+    + [Boosting]         
     + [Bagging]
     + [Stacked Model]
 4. [Conclusion]
@@ -89,6 +95,18 @@ test_labels <- test$AdoptionSpeed
 
 ### Logistic Regression Model 
 
+```{r}
+glmodel <- glm(AdoptionSpeed ~. , data = pet,family = "binomial")
+summary(glmodel)
+glm_pred <- ifelse(predict(glmodel, type = "response")>0.49,1,0)
+library(caret)
+confusionMatrix(as.factor(glm_pred),pet$AdoptionSpeed)
+glm_acc <- 0.6048
+```
+
+From the logistic regression model, we can see that the *type*, *age*, *breed*, *gender*, *color*,* size*, *FurLength*, *Sterilized*, *Health*, *Vaccinated* and *quantity* are some important variables that influence the speed of adoption. Interestingly, we can see that cats, on average, are adopted more quickly than dogs. And it is much harder for male pets to be adopted than other genders(male and mixed). Besides, pets in medium size tends to adopt better than other size of pets. And as we thought, healthy is a key for the adoption speed. From the logistic model, sterilized and vaccinated pets in good condition will adopt much more better.
+
+
 ### KNN Model
 
 ```{r}
@@ -109,16 +127,69 @@ knn_acc
 
 ### SVM Model
 
+```{r}
+library(kernlab)
+pet_classifier_rbf <- ksvm(AdoptionSpeed ~ Type1 + Type2 + MaturitySize1 + MaturitySize2 + MaturitySize3 + MaturitySize4 + FurLength1 + FurLength2 + FurLength3 + Vaccinated1 + Vaccinated2 + Vaccinated3 + Dewormed1 + Dewormed2 + Dewormed3 + Sterilized1 + Sterilized2 + Sterilized3 + Health1 + Health2 + Health3 + Quantity + PhotoAmt + mixedbreed0 + mixedbreed1, data = train, kernel = "rbfdot")
+
+svm_pred <- predict(pet_classifier_rbf, test)
+
+
+CrossTable(x = test_labels, y = svm_pred, 
+           prop.chisq=FALSE)
+
+svm_acc<- mean(svm_pred == test$AdoptionSpeed)
+svm_acc
+
+```
+
 ### ANN Model
 
 ### Decision Tree
+```{r}
+# Train a model
+library(C50)
+pet_model <- C5.0(train[-ncol(train)], train$AdoptionSpeed)
+
+```
+
+```{r}
+# Evaluating model
+tree_pred <- predict(pet_model, test)
+
+library(gmodels)
+CrossTable(test$AdoptionSpeed, tree_pred,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('actual default', 'predicted default'))
+
+tree_acc<-mean(tree_pred == test$AdoptionSpeed)
+tree_acc
+```
+
+### Boosting
+```{r}
+## Boosting the accuracy of decision trees
+# boosted decision tree with 10 trials
+pet_boost10 <- C5.0(train[-ncol(train)], train_labels,
+                       trials = 10)
+
+boost10_pred <- predict(pet_boost10, test)
+CrossTable(test$AdoptionSpeed, boost10_pred,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('actual default', 'predicted default'))
+boost10_acc<- mean(boost10_pred == test_labels)
+boost10_acc
+```
 
 ### Bagging
 
 ### Stacked Model
 ```{r}
-Accuracy<-data.frame("KNN" = knn_acc)
-Predicted <- data.frame(knn_pred)
+#Preparing Dataset
+Accuracy<-data.frame("KNN" = knn_acc, "SVM" = svm_acc, ##ANN
+                     "Tree" = tree_acc, "Boosting" = boost10_acc)
+Predicted <- data.frame(knn_pred, svm_pred, #ann_pred
+                        tree_pred, boost10_pred)
+Accuracy
 
 ```
 
