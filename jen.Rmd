@@ -70,31 +70,18 @@ test_labels <- test$AdoptionSpeed
 
 #SVM Model
 ```{r}
-library(kernlab)
-svmmodel <- ksvm(AdoptionSpeed ~ ., data = train,
-                          kernel = "vanilladot")
-
-
-svmpred <- predict(svmmodel, test)
-
-head(svmpred)
-
-table(svmpred, test$AdoptionSpeed)
-
-agreement <- svmpred == test$AdoptionSpeed
-table(agreement)
-prop.table(table(agreement))
-
-```
-
-
-```{r}
 pet_classifier_rbf <- ksvm(AdoptionSpeed ~ Type1 + Type2 + MaturitySize1 + MaturitySize2 + MaturitySize3 + MaturitySize4 + FurLength1 + FurLength2 + FurLength3 + Vaccinated1 + Vaccinated2 + Vaccinated3 + Dewormed1 + Dewormed2 + Dewormed3 + Sterilized1 + Sterilized2 + Sterilized3 + Health1 + Health2 + Health3 + Quantity + PhotoAmt + mixedbreed0 + mixedbreed1, data = train, kernel = "rbfdot")
-pet_predictions_rbf <- predict(pet_classifier_rbf, test)
 
-agreement_rbf <- pet_predictions_rbf == test$AdoptionSpeed
+svm_pred <- predict(pet_classifier_rbf, test)
+
+agreement_rbf <- svm_pred == test$AdoptionSpeed
 table(agreement_rbf)
 prop.table(table(agreement_rbf))
+
+svm_acc<- mean(svm_pred == test$AdoptionSpeed)
+svm_acc
+
+
 ```
 
 
