@@ -11,94 +11,92 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #Data Cleaning
 ```{r}
-pet <- read.csv("train.csv")
-pet$Name <- NULL
-pet$State <- NULL
-pet$RescuerID <- NULL
-pet$Description <- NULL
-pet$PetID <- NULL
+anndata <- read.csv("train.csv")
+anndata$Name <- NULL
+anndata$State <- NULL
+anndata$RescuerID <- NULL
+anndata$Description <- NULL
+anndata$PetID <- NULL
 
-pet$Color1 <- as.factor(pet$Color1)
-pet$Color2 <- as.factor(pet$Color2)
-pet$Color3 <- as.factor(pet$Color3)
-pet$Type <- as.factor(pet$Type)
-pet$Breed1 <- as.factor(pet$Breed1)
-pet$Gender <- as.factor(pet$Gender)
-pet$MaturitySize <- as.factor(pet$MaturitySize)
-pet$FurLength <- as.factor(pet$FurLength)
-pet$Vaccinated <- as.factor(pet$Vaccinated)
-pet$Dewormed <- as.factor(pet$Dewormed)
-pet$Sterilized <- as.factor(pet$Sterilized)
-pet$Health <- as.factor(pet$Health)
-pet$mixedbreed <- ifelse(pet$Breed2 == 0, 0,1)
-pet$Breed2 <- NULL
-pet$mixedbreed <- as.factor(pet$mixedbreed)
-pet$AdoptionSpeed <- ifelse(pet$AdoptionSpeed == 0 | pet$AdoptionSpeed == 1 | pet$AdoptionSpeed == 2, 0,1 )
+anndata$Color1 <- as.factor(anndata$Color1)
+anndata$Color2 <- as.factor(anndata$Color2)
+anndata$Color3 <- as.factor(anndata$Color3)
+anndata$Type <- as.factor(anndata$Type)
+anndata$Breed1 <- as.factor(anndata$Breed1)
+anndata$Gender <- as.factor(anndata$Gender)
+anndata$MaturitySize <- as.factor(anndata$MaturitySize)
+anndata$FurLength <- as.factor(anndata$FurLength)
+anndata$Vaccinated <- as.factor(anndata$Vaccinated)
+anndata$Dewormed <- as.factor(anndata$Dewormed)
+anndata$Sterilized <- as.factor(anndata$Sterilized)
+anndata$Health <- as.factor(anndata$Health)
+anndata$mixedbreed <- ifelse(anndata$Breed2 == 0, 0,1)
+anndata$Breed2 <- NULL
+anndata$mixedbreed <- as.factor(anndata$mixedbreed)
+anndata$AdoptionSpeed <- ifelse(anndata$AdoptionSpeed == 0 | anndata$AdoptionSpeed == 1 | anndata$AdoptionSpeed == 2, 0,1 )
 
-response <- pet$AdoptionSpeed
-pet$AdoptionSpeed <- NULL
-pet$AdoptionSpeed <- response
+response <- anndata$AdoptionSpeed
+anndata$AdoptionSpeed <- NULL
+anndata$AdoptionSpeed <- response
 
-str(pet)
+# str(anndata)
 ```
 
 #Normalize Data
 ```{r}
-pet_random <- pet[sample(nrow(pet)), ]
+anndata_random <- anndata[sample(nrow(anndata)), ]
 
 normalize <- function(x) { 
   return((x - min(x)) / (max(x) - min(x)))
 }
 
-pet_n1 <- as.data.frame(lapply(pet_random[2], normalize))
-pet_n2 <- as.data.frame(lapply(pet_random[14:17], normalize))
+anndata_n1 <- as.data.frame(lapply(anndata_random[2], normalize))
+anndata_n2 <- as.data.frame(lapply(anndata_random[14:17], normalize))
 
-pet_n <- data.frame(c(pet_random[1], pet_n1, pet_random[3:13], pet_n2, pet_random[18:19]))
+anndata_n <- data.frame(c(anndata_random[1], anndata_n1, anndata_random[3:13], anndata_n2, anndata_random[18:19]))
 
-str(pet_n)
+# str(anndata_n)
 ```
 ```{r}
-pet_mm<- as.data.frame(model.matrix(~ . -1, pet_n))
+anndata_mm<- as.data.frame(model.matrix(~ . -1, anndata_n))
 ```
 
 
 ```{r}
 set.seed(3)
-trainid <- sample(1:nrow(pet_mm), .8*nrow(pet_mm))
-train <- pet_mm[trainid,]
-test <- pet_mm[-trainid,]
-train_labels <- train$AdoptionSpeed
-test_labels <- test$AdoptionSpeed
+anntrainid <- sample(1:nrow(anndata_mm), .8*nrow(anndata_mm))
+anntrain <- anndata_mm[anntrainid,]
+anntest <- anndata_mm[-anntrainid,]
+anntrain_labels <- anntrain$AdoptionSpeed
+anntest_labels <- anntest$AdoptionSpeed
 ```
 
 ```{r}
 library(neuralnet)
-m1 <- neuralnet(formula = AdoptionSpeed ~ . , data = train)
+m1 <- neuralnet(formula = AdoptionSpeed ~ . , data = anntrain)
 
-plot(m1)
+# plot(m1)
 ```
 
 ```{r}
 library(class)
 library(gmodels)
 
-pet_ann_result <- compute(m1,test)
+ann_result <- compute(m1,anntest)
 
-predicted_strength <- pet_ann_result$net.result
+predicted <- ann_result$net.result
 
-summary(normalize(predicted_strength))
+summary(predicted)
 
-ann_pred <- ifelse(predicted_strength > 0.46182 , 1, 0)
+ann_pred <- ifelse(predicted > mean(predicted) , 1, 0)
 
-summary(test$AdoptionSpeed)
+summary(anntest$AdoptionSpeed)
 
 library(caret)
 
-pet_cM_ann <- confusionMatrix(as.factor(ann_pred), as.factor(test$AdoptionSpeed))
+pet_cM_ann <- confusionMatrix(as.factor(ann_pred), as.factor(anntest_labels))
 
-pet_cM_ann
-
-ann_acc <- mean(ann_pred == test_labels)
+ann_acc <- mean(ann_pred == anntest_labels)
 
 ann_acc
 

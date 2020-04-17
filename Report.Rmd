@@ -15,14 +15,14 @@ library(kernlab)
 
 CONTENTS:
 1. [Introduction]
-2. [Data Cleaning]
+2. [Data Exploration]
 3. [Prediction Models]:
     + [Logistic Regression Model]
     + [KNN Model]
     + [SVM Model]
     + [ANN Model]
     + [Decision Tree]       
-    + [Boosting]         
+    + [Boosting]
     + [Bagging]
     + [Stacked Model]
 4. [Conclusion]
@@ -32,8 +32,42 @@ CONTENTS:
 
 Pet adoption problem has recently drawn people's attention, as more people want to adopt a pet during the global pandemic. It is important for animal shelters and related business to predict how soon the pets can find their owner. We want to build data models using R to help with the predictions. The dataset to moltivate this stuty is from https://www.kaggle.com/c/petfinder-adoption-prediction/data, which contain data for cats and dogs. Specifically, we want to predict how soon a pet can be adopted, based on various features including type, gender, health, etc.
 
-## Data Cleaning
+## Data Exploration
 
+### Interesting Insights
+
+#### What is the most popular name for pets ?
+```{r}
+library(dplyr)
+catbyname <- pet %>% filter(Type == 2 & Name != "" & Name != "No Name")%>% group_by(Name) %>% summarize(total = n(), avg_speed = mean(AdoptionSpeed)) %>% arrange(desc(total)) %>% slice(1:10)
+catbyname
+```
+TOP 10 Most Popular Cats' Name:Kittens,Kitty,Baby,Mimi,Kitten,Ginger,Tiger,Kiki,Snowy,Blackie
+
+
+```{r}
+dogbyname <- pet %>% filter(Type == 1 & Name != "" & Name != "No Name") %>% group_by(Name) %>% summarize(total = n(), avg_speed = mean(AdoptionSpeed)) %>% arrange(desc(total)) %>% slice(1:10)
+dogbyname
+```
+TOP 10 Most Popular Dogs' Name:Lucky,Puppy,Brownie,Max,Baby,Blackie,Coco,Bobby,Puppies, Angel
+
+#### What are the names for pets that got adopted more faster than others?
+
+```{r}
+catbyspeed <- catbyname %>% arrange(avg_speed)
+catbyspeed
+```
+
+Among the top 10 popular names for cats, Blackie, Mimi, Tiger, Kitty and Kitten are top 5 names, such that cats with those names can adopt faster than others.
+
+```{r}
+dogbyspeed <- dogbyname %>% arrange(avg_speed)
+dogbyspeed
+```
+
+Among the top 10 popular names for dogs, Lucky,puppies, Blackie, Bobby and Maxare top 5 names, such that dogs with those names can adopt faster than others.
+
+### Data Cleaning
 ```{r, echo= TRUE}
 pet <- read.csv("train.csv")
 pet$Name <- NULL
@@ -96,12 +130,18 @@ test_labels <- test$AdoptionSpeed
 ### Logistic Regression Model 
 
 ```{r}
-glmodel <- glm(AdoptionSpeed ~. , data = pet,family = "binomial")
-summary(glmodel)
-glm_pred <- ifelse(predict(glmodel, type = "response")>0.49,1,0)
+glmodel <- glm(AdoptionSpeed ~. , data = train ,family = "binomial")
+# summary(glmodel)
+
+glm_result1<-predict(glmodel, train)
+glm_tr <- ifelse(glm_result1>mean(glm_result1),1,0)
+
+glm_result<-predict(glmodel, test)
+glm_pred <- ifelse(glm_result>mean(glm_result),1,0)
 library(caret)
-confusionMatrix(as.factor(glm_pred),pet$AdoptionSpeed)
-glm_acc <- 0.6048
+confusionMatrix(as.factor(glm_pred),test$AdoptionSpeed)
+glm_acc <- mean(glm_pred ==test_labels)
+glm_acc
 ```
 
 From the logistic regression model, we can see that the *type*, *age*, *breed*, *gender*, *color*,* size*, *FurLength*, *Sterilized*, *Health*, *Vaccinated* and *quantity* are some important variables that influence the speed of adoption. Interestingly, we can see that cats, on average, are adopted more quickly than dogs. And it is much harder for male pets to be adopted than other genders(male and mixed). Besides, pets in medium size tends to adopt better than other size of pets. And as we thought, healthy is a key for the adoption speed. From the logistic model, sterilized and vaccinated pets in good condition will adopt much more better.
@@ -112,7 +152,10 @@ From the logistic regression model, we can see that the *type*, *age*, *breed*, 
 ```{r}
 library(class)
 knn_pred <- knn(train = train, test = test,
-                      cl = train_labels, k=4)
+                      cl = train_labels, k=sqrt(ncol(train)))
+knn_tr <- knn(train = train, test = train,
+                      cl = train_labels, k=sqrt(ncol(train)))
+
 ```
 ```{r}
 library(gmodels)
@@ -124,6 +167,7 @@ CrossTable(x = test_labels, y = knn_pred,
 knn_acc<- mean(knn_pred == test_labels)
 knn_acc
 ```
+In building the model, we think the best *k* is the sqrt of the number of variables. In fact, this model produce a high accuracy rate of `r knn_acc` for the test data. Further model exploration might be necessary to improve this prediction. (see [Stacked Model])
 
 ### SVM Model
 
@@ -131,9 +175,10 @@ knn_acc
 library(kernlab)
 pet_classifier_rbf <- ksvm(AdoptionSpeed ~ Type1 + Type2 + MaturitySize1 + MaturitySize2 + MaturitySize3 + MaturitySize4 + FurLength1 + FurLength2 + FurLength3 + Vaccinated1 + Vaccinated2 + Vaccinated3 + Dewormed1 + Dewormed2 + Dewormed3 + Sterilized1 + Sterilized2 + Sterilized3 + Health1 + Health2 + Health3 + Quantity + PhotoAmt + mixedbreed0 + mixedbreed1, data = train, kernel = "rbfdot")
 
+svm_tr <-predict(pet_classifier_rbf, train) ##
 svm_pred <- predict(pet_classifier_rbf, test)
 
-
+library(gmodels)
 CrossTable(x = test_labels, y = svm_pred, 
            prop.chisq=FALSE)
 
@@ -142,7 +187,100 @@ svm_acc
 
 ```
 
+We checked all the affecting variables and substituted the breed factor with mixed breed factor. After building two SVM Models (one with vanilladot, one with rbfdot), we discovered that the rbfdot possessed higher accuracy. Hence we chose rbfdot SVM model for our prediction which gives an accuracy rate of `r svm_acc`.
+
 ### ANN Model
+```{r}
+anndata <- read.csv("train.csv")
+anndata$Name <- NULL
+anndata$State <- NULL
+anndata$RescuerID <- NULL
+anndata$Description <- NULL
+anndata$PetID <- NULL
+
+anndata$Color1 <- as.factor(anndata$Color1)
+anndata$Color2 <- as.factor(anndata$Color2)
+anndata$Color3 <- as.factor(anndata$Color3)
+anndata$Type <- as.factor(anndata$Type)
+anndata$Breed1 <- as.factor(anndata$Breed1)
+anndata$Gender <- as.factor(anndata$Gender)
+anndata$MaturitySize <- as.factor(anndata$MaturitySize)
+anndata$FurLength <- as.factor(anndata$FurLength)
+anndata$Vaccinated <- as.factor(anndata$Vaccinated)
+anndata$Dewormed <- as.factor(anndata$Dewormed)
+anndata$Sterilized <- as.factor(anndata$Sterilized)
+anndata$Health <- as.factor(anndata$Health)
+anndata$mixedbreed <- ifelse(anndata$Breed2 == 0, 0,1)
+anndata$Breed2 <- NULL
+anndata$mixedbreed <- as.factor(anndata$mixedbreed)
+anndata$AdoptionSpeed <- ifelse(anndata$AdoptionSpeed == 0 | anndata$AdoptionSpeed == 1 | anndata$AdoptionSpeed == 2, 0,1 )
+
+response <- anndata$AdoptionSpeed
+anndata$AdoptionSpeed <- NULL
+anndata$AdoptionSpeed <- response
+
+# str(anndata)
+```
+
+##### Normalize Data
+```{r}
+anndata_random <- anndata[sample(nrow(anndata)), ]
+
+normalize <- function(x) { 
+  return((x - min(x)) / (max(x) - min(x)))
+}
+
+anndata_n1 <- as.data.frame(lapply(anndata_random[2], normalize))
+anndata_n2 <- as.data.frame(lapply(anndata_random[14:17], normalize))
+
+anndata_n <- data.frame(c(anndata_random[1], anndata_n1, anndata_random[3:13], anndata_n2, anndata_random[18:19]))
+
+# str(anndata_n)
+```
+```{r}
+anndata_mm<- as.data.frame(model.matrix(~ . -1, anndata_n))
+```
+
+
+```{r}
+set.seed(3)
+anntrainid <- sample(1:nrow(anndata_mm), .8*nrow(anndata_mm))
+anntrain <- anndata_mm[anntrainid,]
+anntest <- anndata_mm[-anntrainid,]
+anntrain_labels <- anntrain$AdoptionSpeed
+anntest_labels <- anntest$AdoptionSpeed
+```
+
+```{r}
+library(neuralnet)
+m1 <- neuralnet(formula = AdoptionSpeed ~ . , data = anntrain)
+
+# plot(m1)
+```
+
+```{r}
+library(class)
+library(gmodels)
+
+ann_result1 <- compute(m1,anntrain)
+predicted1 <- ann_result1$net.result
+summary(predicted1)
+ann_tr <- ifelse(predicted1 > mean(predicted1) , 1, 0) # for stacked model
+
+ann_result <- compute(m1,anntest)
+predicted <- ann_result$net.result
+summary(predicted)
+ann_pred <- ifelse(predicted > mean(predicted) , 1, 0)
+
+library(caret)
+
+pet_cM_ann <- confusionMatrix(as.factor(ann_pred), as.factor(anntest_labels))
+
+ann_acc <- mean(ann_pred == anntest_labels)
+ann_acc
+
+```
+
 
 ### Decision Tree
 ```{r}
@@ -154,12 +292,15 @@ pet_model <- C5.0(train[-ncol(train)], train$AdoptionSpeed)
 
 ```{r}
 # Evaluating model
+tree_tr <- predict(pet_model, train) #for stacked model
+
 tree_pred <- predict(pet_model, test)
+
 
 library(gmodels)
 CrossTable(test$AdoptionSpeed, tree_pred,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
-           dnn = c('actual default', 'predicted default'))
+           dnn = c('actual', 'predicted'))
 
 tree_acc<-mean(tree_pred == test$AdoptionSpeed)
 tree_acc
@@ -172,27 +313,64 @@ tree_acc
 pet_boost10 <- C5.0(train[-ncol(train)], train_labels,
                        trials = 10)
 
+
+boost10_tr <- predict(pet_boost10, train) #for stacked model
+
 boost10_pred <- predict(pet_boost10, test)
 CrossTable(test$AdoptionSpeed, boost10_pred,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
-           dnn = c('actual default', 'predicted default'))
+           dnn = c('actual', 'predicted'))
 boost10_acc<- mean(boost10_pred == test_labels)
 boost10_acc
 ```
 
 ### Bagging
 
+```{r}
+# Using the ipred bagged decision trees to improve the logistic model
+library(ipred)
+set.seed(3)
+mybag <- bagging(AdoptionSpeed ~ ., data = train, nbagg = 25)
+
+
+bag_tr <- predict(mybag, train) # for stacked model
+
+bag_pred <- predict(mybag, test)
+table(bag_pred, test$AdoptionSpeed)
+bag_acc <- mean(bag_pred ==test_labels)
+bag_acc
+```
+
 ### Stacked Model
 ```{r}
 #Preparing Dataset
-Accuracy<-data.frame("KNN" = knn_acc, "SVM" = svm_acc, ##ANN
-                     "Tree" = tree_acc, "Boosting" = boost10_acc)
-Predicted <- data.frame(knn_pred, svm_pred, #ann_pred
-                        tree_pred, boost10_pred)
-Accuracy
+
+PredictedTr <- data.frame(glm_tr, knn_tr, svm_tr, ann_tr,
+                        tree_tr, boost10_tr, bag_tr)
+
+Predicted <- data.frame(glm_pred, knn_pred, svm_pred, ann_pred,
+                        tree_pred, boost10_pred, bag_pred)
+library(C50)
+stacked<- C5.0(PredictedTr[-ncol(PredictedTr)],train$AdoptionSpeed, trials = 5)
+
+names(Predicted)<- names(PredictedTr)
+stacked_pred<-predict(stacked, Predicted)
+
+stacked_acc<- mean(stacked_pred == test_labels)
+stacked_acc
 
 ```
 
 
 
 ## Conclusion
+
+```{r}
+Accuracy<-data.frame( "Model" =c("Logistic Regression", "KNN", "SVM", "ANN",
+                                 "Tree", "Boosting", "Bagging", "Stacked Model" ),
+                      "Accuracy Rate" = c(glm_acc, knn_acc, svm_acc, ann_acc,
+                                          tree_acc, boost10_acc, bag_acc, stacked_acc))
+
+Accuracy
+
+```
