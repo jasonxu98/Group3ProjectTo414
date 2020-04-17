@@ -84,4 +84,8 @@ svm_acc
 
 ```
 
+#Analysis
+
+We checked all the affecting variables and substituted the breed factor with mixed breed factor. After building two SVM Models (one with vanilladot, one with rbfdot), we discovered that the rbfdot possessed higher accuracy. Hence we chose rbfdot SVM model for our prediction. 
+
 
