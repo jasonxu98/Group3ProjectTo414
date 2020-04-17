@@ -6,13 +6,27 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
+CONTENTS:
+1. [Background]
+2. [Data Cleaning]
+3. [Prediction Models:]
+    + [Logistic Regression Model]
+    + [KNN Model]
+    + [SVM Model]
+    + [ANN Model]
+    + [Decision Tree]
+    + [Bagging]
+    + [Stacked Model]
+4. Conclusion
+
 
 ## Background
 
-## Data
-```{r}
+## Data Cleaning
+
+```{r, echo= TRUE}
 pet <- read.csv("train.csv")
 pet$Name <- NULL
 pet$State <- NULL
@@ -36,57 +50,76 @@ pet$Breed2 <- NULL
 pet$mixedbreed <- as.factor(pet$mixedbreed)
 str(pet)
 
-
 ```
 
-## Regression model
-```{r}
-lmodel <- lm( AdoptionSpeed ~. , data = pet)
-summary(lmodel)
+### Normalizing Data
+```{r, echo = TRUE}
+pet$AdoptionSpeed <- ifelse(pet$AdoptionSpeed == 0 | pet$AdoptionSpeed == 1 | pet$AdoptionSpeed == 2, 0,1 )
+pet_random <- pet[sample(nrow(pet)), ]
 
-lmodel2 <- lm( AdoptionSpeed ~ Type + Age + Gender + Color1 + Color2 + Color3 + MaturitySize + FurLength + Vaccinated + Dewormed + Sterilized + Health + Quantity + PhotoAmt + mixedbreed , data = pet)
-summary(lmodel2)
+normalize <- function(x) { 
+  return((x - min(x)) / (max(x) - min(x)))
+}
+
+pet$AdoptionSpeed <- as.factor(pet$AdoptionSpeed)
+pet$AdoptSpeed <- pet$AdoptionSpeed
+pet$AdoptionSpeed <- NULL
+
+library(dummies)
+pet_dummy <- dummy.data.frame(data = pet[,-ncol(pet)],)
+
+pet_norm <- as.data.frame(lapply(pet_dummy, normalize))
+pet_norm$AdoptionSpeed <- pet$AdoptSpeed
 ```
 
-## Prediction model
+### Preparing Dataset
 
-```{r}
+```{r, echo= TRUE}
 set.seed(3)
-trainid <- sample(1:nrow(pet), .8*nrow(pet))
-train <- pet[trainid,]
-test <- pet[-trainid,]
+trainid <- sample(1:nrow(pet_norm), .8*nrow(pet_norm))
+train <- pet_norm[trainid,]
+test <- pet_norm[-trainid,]
 train_labels <- train$AdoptionSpeed
 test_labels <- test$AdoptionSpeed
 ```
 
+## Prediction Model
+
+### Logistic Regression Model 
+
+### KNN Model
+
 ```{r}
 library(class)
-test_pred <- knn(train = train, test = test,
-                      cl = train_labels, k=21)
+knn_pred <- knn(train = train, test = test,
+                      cl = train_labels, k=4)
+```
+```{r}
 library(gmodels)
-CrossTable(x = test_labels, y = test_pred, 
+CrossTable(x = test_labels, y = knn_pred, 
            prop.chisq=FALSE)
 ```
 
+```{r}
+knn_acc<- mean(knn_pred == test_labels)
+knn_acc
+```
+
+### SVM Model
+
+### ANN Model
+
+### Decision Tree
 
 ### Bagging
 
+### Stacked Model
 ```{r}
-pet$AdoptionSpeed <- as.factor(pet$AdoptionSpeed)
-# Using the ipred bagged decision trees
-library(ipred)
-set.seed(300)
-mybag <- bagging(AdoptionSpeed ~ ., data = pet, nbagg = 25)
-pet_pred <- predict(mybag, pet)
-table(pet_pred, pet$AdoptionSpeed)
+Accuracy<-data.frame("KNN" = knn_acc)
+Predicted <- data.frame(knn_pred)
 
-# estimate performance of ipred bagged trees
-library(caret)
-set.seed(300)
-ctrl <- trainControl(method = "cv", number = 10)
-train(AdoptionSpeed ~ ., data = pet, method = "treebag",
-      trControl = ctrl)
 ```
+
 
 
 ## Conclusion
