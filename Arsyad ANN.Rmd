@@ -9,22 +9,18 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Getting Datasets and Packages
+#Data Cleaning
 ```{r}
-pet <- read.csv("petfinder.csv")
-state <- read.csv("state_labels.csv")
-color <- read.csv("ColorLabels.csv")
-breed <- read.csv("BreedLabels.csv")
-```
-
-## Data Cleaning
-```{r}
+pet <- read.csv("train.csv")
 pet$Name <- NULL
 pet$State <- NULL
 pet$RescuerID <- NULL
 pet$Description <- NULL
 pet$PetID <- NULL
 
+pet$Color1 <- as.factor(pet$Color1)
+pet$Color2 <- as.factor(pet$Color2)
+pet$Color3 <- as.factor(pet$Color3)
 pet$Type <- as.factor(pet$Type)
 pet$Breed1 <- as.factor(pet$Breed1)
 pet$Gender <- as.factor(pet$Gender)
@@ -34,54 +30,79 @@ pet$Vaccinated <- as.factor(pet$Vaccinated)
 pet$Dewormed <- as.factor(pet$Dewormed)
 pet$Sterilized <- as.factor(pet$Sterilized)
 pet$Health <- as.factor(pet$Health)
-
-
 pet$mixedbreed <- ifelse(pet$Breed2 == 0, 0,1)
 pet$Breed2 <- NULL
 pet$mixedbreed <- as.factor(pet$mixedbreed)
-pet$AdoptionSpeedDummy <- pet$AdoptionSpeed
+pet$AdoptionSpeed <- ifelse(pet$AdoptionSpeed == 0 | pet$AdoptionSpeed == 1 | pet$AdoptionSpeed == 2, 0,1 )
+
+response <- pet$AdoptionSpeed
 pet$AdoptionSpeed <- NULL
+pet$AdoptionSpeed <- response
+
 str(pet)
 ```
-## Randomize Data
+
+#Normalize Data
 ```{r}
 pet_random <- pet[sample(nrow(pet)), ]
-```
 
-
-## Model Matrix
-```{r}
-petmm <- as.data.frame(model.matrix(~ . , data = pet_random))
-str(petmm)
-```
-
-
-## Normalization
-```{r}
 normalize <- function(x) { 
   return((x - min(x)) / (max(x) - min(x)))
 }
 
+pet_n1 <- as.data.frame(lapply(pet_random[2], normalize))
+pet_n2 <- as.data.frame(lapply(pet_random[14:17], normalize))
+
+pet_n <- data.frame(c(pet_random[1], pet_n1, pet_random[3:13], pet_n2, pet_random[18:19]))
+
+str(pet_n)
 ```
+```{r}
+pet_mm<- as.data.frame(model.matrix(~ . -1, pet_n))
+```
+
 
 ```{r}
 set.seed(3)
-trainid <- sample(1:nrow(pet), .8*nrow(pet))
-train <- pet[trainid,]
-test <- pet[-trainid,]
+trainid <- sample(1:nrow(pet_mm), .8*nrow(pet_mm))
+train <- pet_mm[trainid,]
+test <- pet_mm[-trainid,]
 train_labels <- train$AdoptionSpeed
 test_labels <- test$AdoptionSpeed
 ```
 
 ```{r}
-library(class)
-test_pred <- knn(train = train, test = test,
-                      cl = train_labels, k=21)
-library(gmodels)
-CrossTable(x = test_labels, y = test_pred, 
-           prop.chisq=FALSE)
+library(neuralnet)
+m1 <- neuralnet(formula = AdoptionSpeed ~ . , data = train)
+
+plot(m1)
 ```
 
+```{r}
+library(class)
+library(gmodels)
+
+pet_ann_result <- compute(m1,test)
+
+predicted_strength <- pet_ann_result$net.result
+
+summary(normalize(predicted_strength))
+
+ann_pred <- ifelse(predicted_strength > 0.46182 , 1, 0)
+
+summary(test$AdoptionSpeed)
+
+library(caret)
+
+pet_cM_ann <- confusionMatrix(as.factor(ann_pred), as.factor(test$AdoptionSpeed))
+
+pet_cM_ann
+
+ann_acc <- mean(ann_pred == test_labels)
+
+ann_acc
+
+```
 
 
 
