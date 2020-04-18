@@ -30,43 +30,43 @@ CONTENTS:
 
 ## Introduction
 
-Pet adoption problem has recently drawn people's attention, as more people want to adopt a pet during the global pandemic. It is important for animal shelters and related business to predict how soon the pets can find their owner. We want to build data models using R to help with the predictions. The dataset to moltivate this stuty is from https://www.kaggle.com/c/petfinder-adoption-prediction/data, which contain data for cats and dogs. Specifically, we want to predict how soon a pet can be adopted, based on various features including type, gender, health, etc.
+Pet adoption problem has recently drawn people's attention, as more people want to adopt a pet during the global pandemic. It is important for animal shelters and related business to predict how soon pets can find their owner. We want to build data models using R to help with the predictions. The dataset to moltivate this study is from https://www.kaggle.com/c/petfinder-adoption-prediction/data, which contain data for cats and dogs. Specifically, we want to predict how soon a pet can be adopted, based on various features including type, gender, health, etc.
 
 ## Data Exploration
 
 ### Interesting Insights
 
-#### What is the most popular name for pets ?
+#### What are the most popular names for pets?
 ```{r}
 pet <- read.csv("train.csv")
 library(dplyr)
 catbyname <- pet %>% filter(Type == 2 & Name != "" & Name != "No Name")%>% group_by(Name) %>% summarize(total = n(), avg_speed = mean(AdoptionSpeed)) %>% arrange(desc(total)) %>% slice(1:10)
 catbyname
 ```
-TOP 10 Most Popular Cats' Name:Kittens,Kitty,Baby,Mimi,Kitten,Ginger,Tiger,Kiki,Snowy,Blackie
+10 Most Popular Cats' Name: Kittens, Kitty, Baby, Mimi, Kitten, Ginger, Tiger, Kiki, Snowy, Blackie
 
 
 ```{r}
 dogbyname <- pet %>% filter(Type == 1 & Name != "" & Name != "No Name") %>% group_by(Name) %>% summarize(total = n(), avg_speed = mean(AdoptionSpeed)) %>% arrange(desc(total)) %>% slice(1:10)
 dogbyname
 ```
-TOP 10 Most Popular Dogs' Name:Lucky,Puppy,Brownie,Max,Baby,Blackie,Coco,Bobby,Puppies, Angel
+10 Most Popular Dogs' Name: Lucky, Puppy, Brownie, Max, Baby, Blackie, Coco, Bobby, Puppies, Angel
 
-#### What are the names for pets that got adopted more faster than others?
+#### What are the names for pets that got adopted faster than others?
 
 ```{r}
 catbyspeed <- catbyname %>% arrange(avg_speed)
 catbyspeed
 ```
 
-Among the top 10 popular names for cats, Blackie, Mimi, Tiger, Kitty and Kitten are top 5 names, such that cats with those names can adopt faster than others.
+Among the top 5 popular names for cats are Blackie, Mimi, Tiger, Kitty and Kitten. Cats with such names were adopted faster than other cats with different names.
 
 ```{r}
 dogbyspeed <- dogbyname %>% arrange(avg_speed)
 dogbyspeed
 ```
 
-Among the top 10 popular names for dogs, Lucky,puppies, Blackie, Bobby and Maxare top 5 names, such that dogs with those names can adopt faster than others.
+Among the top 5 popular names for dogs are Lucky, puppies, Blackie, Bobby and Maxare. Dogs with those names were adopted faster than others.
 
 ### Data Cleaning
 ```{r, echo= TRUE}
@@ -116,7 +116,6 @@ pet_norm$AdoptionSpeed <- pet$AdoptSpeed
 ```
 
 ### Preparing Dataset
-
 ```{r, echo= TRUE}
 set.seed(3)
 trainid <- sample(1:nrow(pet_norm), .8*nrow(pet_norm))
@@ -129,7 +128,6 @@ test_labels <- test$AdoptionSpeed
 ## Prediction Model
 
 ### Logistic Regression Model 
-
 ```{r}
 glmodel <- glm(AdoptionSpeed ~. , data = train ,family = "binomial")
 # summary(glmodel)
@@ -145,11 +143,9 @@ glm_acc <- mean(glm_pred ==test_labels)
 glm_acc
 ```
 
-From the logistic regression model, we can see that the *type*, *age*, *breed*, *gender*, *color*,* size*, *FurLength*, *Sterilized*, *Health*, *Vaccinated* and *quantity* are some important variables that influence the speed of adoption. Interestingly, we can see that cats, on average, are adopted more quickly than dogs. And it is much harder for male pets to be adopted than other genders(male and mixed). Besides, pets in medium size tends to adopt better than other size of pets. And as we thought, healthy is a key for the adoption speed. From the logistic model, sterilized and vaccinated pets in good condition will adopt much more better.
-
+From the logistic regression model, we can see that *type*, *age*, *breed*, *gender*, *color*,*size*, *FurLength*, *Sterilized*, *Health*, *Vaccinated* and *quantity* are some important variables that influence the speed of adoption. Interestingly, we can see that cats, on average, are adopted more quickly than dogs. It is much harder for male pets to be adopted than other genders (female and mixed). Moreover, medium-size pets tend to get adopted better than other pets of different sizes. And as we thought, healthy is a key for the adoption speed. From the logistic model, sterilized and vaccinated pets in good condition are highly likely to be adopted.
 
 ### KNN Model
-
 ```{r}
 library(class)
 knn_pred <- knn(train = train, test = test,
@@ -171,7 +167,6 @@ knn_acc
 In building the model, we think the best *k* is the sqrt of the number of variables. In fact, this model produce a high accuracy rate of `r knn_acc` for the test data. Further model exploration might be necessary to improve this prediction. (see [Stacked Model])
 
 ### SVM Model
-
 ```{r}
 library(kernlab)
 pet_classifier_rbf <- ksvm(AdoptionSpeed ~ Type1 + Type2 + MaturitySize1 + MaturitySize2 + MaturitySize3 + MaturitySize4 + FurLength1 + FurLength2 + FurLength3 + Vaccinated1 + Vaccinated2 + Vaccinated3 + Dewormed1 + Dewormed2 + Dewormed3 + Sterilized1 + Sterilized2 + Sterilized3 + Health1 + Health2 + Health3 + Quantity + PhotoAmt + mixedbreed0 + mixedbreed1, data = train, kernel = "rbfdot")
@@ -187,8 +182,7 @@ svm_acc<- mean(svm_pred == test$AdoptionSpeed)
 svm_acc
 
 ```
-
-We checked all the affecting variables and substituted the breed factor with mixed breed factor. After building two SVM Models (one with vanilladot, one with rbfdot), we discovered that the rbfdot possessed higher accuracy. Hence we chose rbfdot SVM model for our prediction which gives an accuracy rate of `r svm_acc`.
+We checked all the affecting variables and substituted the breed factor with mixed breed factor. After building two SVM Models (one with kernel of vanilladot, another with rbfdot), we discovered that the rbfdot possessed higher accuracy. Hence we chose rbfdot SVM model for our prediction which gives an accuracy rate of `r svm_acc`.
 
 ### ANN Model
 ```{r}
@@ -219,8 +213,6 @@ anndata$AdoptionSpeed <- ifelse(anndata$AdoptionSpeed == 0 | anndata$AdoptionSpe
 response <- anndata$AdoptionSpeed
 anndata$AdoptionSpeed <- NULL
 anndata$AdoptionSpeed <- response
-
-# str(anndata)
 ```
 
 ##### Normalize Data
@@ -235,13 +227,10 @@ anndata_n1 <- as.data.frame(lapply(anndata_random[2], normalize))
 anndata_n2 <- as.data.frame(lapply(anndata_random[14:17], normalize))
 
 anndata_n <- data.frame(c(anndata_random[1], anndata_n1, anndata_random[3:13], anndata_n2, anndata_random[18:19]))
-
-# str(anndata_n)
 ```
 ```{r}
 anndata_mm<- as.data.frame(model.matrix(~ . -1, anndata_n))
 ```
-
 
 ```{r}
 set.seed(3)
@@ -255,15 +244,14 @@ anntest_labels <- anntest$AdoptionSpeed
 ```{r}
 library(neuralnet)
 m1 <- neuralnet(formula = AdoptionSpeed ~ . , data = anntrain)
-
-# plot(m1)
 ```
 
 ```{r}
 library(class)
 library(gmodels)
+library(neuralnet)
 
-ann_result1 <- compute(m1,anntrain)
+ann_result1 <- predict(m1,anntrain)
 predicted1 <- ann_result1$net.result
 summary(predicted1)
 ann_tr <- ifelse(predicted1 > mean(predicted1) , 1, 0) # for stacked model
@@ -278,10 +266,8 @@ pet_cM_ann <- confusionMatrix(as.factor(ann_pred), as.factor(anntest_labels))
 
 ann_acc <- mean(ann_pred == anntest_labels)
 ann_acc
-
-
 ```
-
+From the ANN model, we can see that the accuracy for predicting the adoption speed of the pets is `r ann_acc`. This is not a very high accuracy level, however, it is compatible with other models. We can improve this model by increasing the hidden neurons of the model. However, doing so will affect the time taken for the model to run and will only increase the accuracy by a little.
 
 ### Decision Tree
 ```{r}
@@ -326,7 +312,6 @@ boost10_acc
 ```
 
 ### Bagging
-
 ```{r}
 # Using the ipred bagged decision trees to improve the logistic model
 library(ipred)
@@ -346,7 +331,7 @@ ctrl <- trainControl(method = "cv", number = 10)
 train(AdoptionSpeed ~ ., data = test, method = "treebag",
       trControl = ctrl)
 ```
-The mode's accuracy is 0.6205, which seems to have fit the training data well. And the kappa statistic of 0.21 for this model suggests that the bagged tree model performs on par with our C5.0 decision tree.
+The mode's accuracy is `r bag_acc`, which seems to have fit the training data well. And the kappa statistic of 0.21 for this model suggests that the bagged tree model performs on par with our C5.0 decision tree.
 
 ### Stacked Model
 ```{r}
@@ -369,9 +354,7 @@ stacked_acc
 ```
 
 
-
 ## Conclusion
-
 ```{r}
 Accuracy<-data.frame( "Model" =c("Logistic Regression", "KNN", "SVM", "ANN",
                                  "Tree", "Boosting", "Bagging", "Stacked Model" ),
