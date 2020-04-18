@@ -32,6 +32,17 @@ CONTENTS:
 
 Pet adoption problem has recently drawn people's attention, as more people want to adopt a pet during the global pandemic. It is important for animal shelters and related business to predict how soon pets can find their owner. We want to build data models using R to help with the predictions. The dataset to moltivate this study is from https://www.kaggle.com/c/petfinder-adoption-prediction/data, which contain data for cats and dogs. Specifically, we want to predict how soon a pet can be adopted, based on various features including type, gender, health, etc.
 
+When we received the data, we made slight changes to the data to better fit our models. We did not require the information of the pets' second breed. Instead, we changed this information to whether the pet is a mixed breed or if it's a pure breed. We also change the ranges of the response variable, pets' adoption speed. We were given adoption speed of the following:
+
+0 - Pet was adopted on the same day as it was listed. 
+1 - Pet was adopted between 1 and 7 days (1st week) after being listed. 
+2 - Pet was adopted between 8 and 30 days (1st month) after being listed. 
+3 - Pet was adopted between 31 and 90 days (2nd & 3rd month) after being listed. 
+4 - No adoption after 100 days of being listed. (There are no pets in this dataset that waited between 90 and 100 days).
+
+We infer that it is more beneficial for animal shelters and animal-related businesses to have information whether pets were adopted within a month or they will be adopted more than a month or never get adopted. This is because we believe that accounting are mostly done monthly. Hence, we change the response variable, pets' adoption speed, into just 2 groups: 1) Adopted within a month (31 days) or 2) Adopted after a month (31 days) or not adopted.
+
+
 ## Data Exploration
 
 ### Interesting Insights
@@ -250,8 +261,9 @@ m1 <- neuralnet(formula = AdoptionSpeed ~ . , data = anntrain)
 library(class)
 library(gmodels)
 library(neuralnet)
+library(caret)
 
-ann_result1 <- predict(m1,anntrain)
+ann_result1 <- compute(m1,anntrain)
 predicted1 <- ann_result1$net.result
 summary(predicted1)
 ann_tr <- ifelse(predicted1 > mean(predicted1) , 1, 0) # for stacked model
@@ -263,6 +275,7 @@ ann_pred <- ifelse(predicted > mean(predicted) , 1, 0)
 
 
 pet_cM_ann <- confusionMatrix(as.factor(ann_pred), as.factor(anntest_labels))
+pet_cM_ann
 
 ann_acc <- mean(ann_pred == anntest_labels)
 ann_acc
@@ -331,9 +344,20 @@ ctrl <- trainControl(method = "cv", number = 10)
 train(AdoptionSpeed ~ ., data = test, method = "treebag",
       trControl = ctrl)
 ```
-The mode's accuracy is `r bag_acc`, which seems to have fit the training data well. And the kappa statistic of 0.21 for this model suggests that the bagged tree model performs on par with our C5.0 decision tree.
+The model's accuracy is `r bag_acc`, which seems to have fit the training data well. And the kappa statistic of 0.21 for this model suggests that the bagged tree model performs on par with our C5.0 decision tree.
 
 ### Stacked Model
+
+We obtained different accuracy rates from the previous seven models:
+```{r}
+Model =c("Logistic Regression", "KNN", "SVM", "ANN",
+                                 "Tree", "Boosting", "Bagging")
+Accuracy_Rate = c(glm_acc, knn_acc, svm_acc, ann_acc,
+                                          tree_acc, boost10_acc, bag_acc)
+dotchart(Accuracy_Rate, labels = Model, main = "Accuracy of the models", xlab = "Accuracy")
+```
+Only KNN produces a high accuracy rate while others remain at about 60%. So, we believe that stacking the models using trees will produce a better accuracy rate.
+
 ```{r}
 #Preparing Dataset
 
@@ -350,11 +374,13 @@ stacked_pred<-predict(stacked, Predicted)
 
 stacked_acc<- mean(stacked_pred == test_labels)
 stacked_acc
-
+plot(stacked)
 ```
-
+As expected, the accuracy rate of this stacked model is `r stacked_acc` which is an improvement from the highest accuracy rate, KNN's (`r knn_acc`).
 
 ## Conclusion
+
+We have predicted whether a pet gets adopted within a month (31 days) or not using 8 models. The accuracy rate are as followed:
 ```{r}
 Accuracy<-data.frame( "Model" =c("Logistic Regression", "KNN", "SVM", "ANN",
                                  "Tree", "Boosting", "Bagging", "Stacked Model" ),
@@ -362,5 +388,7 @@ Accuracy<-data.frame( "Model" =c("Logistic Regression", "KNN", "SVM", "ANN",
                                           tree_acc, boost10_acc, bag_acc, stacked_acc))
 
 Accuracy
-
 ```
+
+Predicting the pet’s adoption speed will benefit companies in terms of resources optimization. This includes pets’ medical appointments with veterinarians. If they know how long will a pet be adopted, they can budget the food distribution, manage spaces for the pets and if they should place more pets for adoption.
+
