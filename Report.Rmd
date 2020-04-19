@@ -14,18 +14,18 @@ library(kernlab)
 ```
 
 CONTENTS:
-1. [Introduction]\n
-2. [Data Exploration]\n
-3. [Prediction Model]:\n
-    + [Logistic Regression Model]\n
-    + [KNN Model]\n
-    + [SVM Model]\n
-    + [ANN Model]\n
-    + [Decision Tree]\n       
-    + [Boosting]\n
-    + [Bagging]\n
-    + [Stacked Model]\n
-4. [Conclusion]\n
+1. [Introduction]<br />
+2. [Data Exploration]<br />
+3. [Prediction Model]:<br />
+    + [Logistic Regression Model]<br />
+    + [KNN Model]<br />
+    + [SVM Model]<br />
+    + [ANN Model]<br />
+    + [Decision Tree]<br /> 
+    + [Boosting]<br />
+    + [Bagging]<br />
+    + [Stacked Model]<br />
+4. [Conclusion]<br />
 
 
 ## Introduction
@@ -33,9 +33,8 @@ CONTENTS:
 Pet adoption problem has recently drawn people's attention, as more people want to adopt a pet during the global pandemic. It is important for animal shelters and related business to predict how soon pets can find their owner. We want to build data models using R to help with the predictions. The dataset to moltivate this study is from https://www.kaggle.com/c/petfinder-adoption-prediction/data, which contain data for cats and dogs. Specifically, we want to predict how soon a pet can be adopted, based on various features including type, gender, health, etc. We also want to explore the dataset to find if there is anything interesting or surprising.
 
 ## Data Exploration
-We want to 
-### Interesting Insights
 
+### Interesting Insights
 #### What are the most popular names for pets?
 ```{r, echo= TRUE}
 pet <- read.csv("train.csv")
@@ -81,7 +80,7 @@ We infer that it is more beneficial for animal shelters and animal-related busin
 ```{r, echo= TRUE}
 pet <- read.csv("train.csv")
 
-# Remove 
+# Remove unrelated data
 pet$Name <- NULL
 pet$State <- NULL
 pet$RescuerID <- NULL
@@ -98,17 +97,21 @@ pet$Dewormed <- as.factor(pet$Dewormed)
 pet$Sterilized <- as.factor(pet$Sterilized)
 pet$Health <- as.factor(pet$Health)
 
-
+# Classify "mixed breed" pets
 pet$mixedbreed <- ifelse(pet$Breed2 == 0, 0,1)
 pet$Breed2 <- NULL
 pet$mixedbreed <- as.factor(pet$mixedbreed)
-str(pet)
 
+# Reclassify the AdoptionSpeed into binary format
+pet$AdoptionSpeed <- ifelse(pet$AdoptionSpeed == 0 | pet$AdoptionSpeed == 1 | pet$AdoptionSpeed == 2, 0,1 )
+
+str(pet)
 ```
 
 ### Normalizing Data
 ```{r, echo = TRUE}
-pet$AdoptionSpeed <- ifelse(pet$AdoptionSpeed == 0 | pet$AdoptionSpeed == 1 | pet$AdoptionSpeed == 2, 0,1 )
+
+# Prepare normalized dataset for potential use
 pet_random <- pet[sample(nrow(pet)), ]
 
 normalize <- function(x) { 
@@ -128,6 +131,7 @@ pet_norm$AdoptionSpeed <- pet$AdoptSpeed
 
 ### Preparing Dataset
 ```{r, echo= TRUE}
+# Split the dataset for 80% training and 20% testing
 set.seed(3)
 trainid <- sample(1:nrow(pet_norm), .8*nrow(pet_norm))
 train <- pet_norm[trainid,]
@@ -137,7 +141,6 @@ test_labels <- test$AdoptionSpeed
 ```
 
 ## Prediction Model
-
 ### Logistic Regression Model 
 ```{r}
 glmodel <- glm(AdoptionSpeed ~. , data = train ,family = "binomial")
@@ -154,8 +157,7 @@ glm_acc <- mean(glm_pred ==test_labels)
 glm_acc
 ```
 
-From the logistic regression model, we can see that *type*, *age*, *breed*, *gender*, *color*,*size*, *FurLength*, *Sterilized*, *Health*, *Vaccinated* and *quantity* are some important variables that influence the speed of adoption. Interestingly, we can see that cats, on average, are adopted more quickly than dogs. It is much harder for male pets to be adopted than other genders (female and mixed). Moreover, medium-size pets tend to get adopted better than other pets of different sizes. And as we thought, healthy is a key for the adoption speed. From the logistic model, sterilized and vaccinated pets in good condition are highly likely to be adopted.
-
+From the logistic regression model, we can see that *type*, *age*, *breed*, *gender*, *color*,*size*, *FurLength*, *Sterilized*, *Health*, *Vaccinated* and *quantity* are some important variables that influence the speed of adoption. Interestingly, we can see that cats, on average, are adopted more quickly than dogs. It is much harder for male pets to be adopted than female pets, or a group of mixed pets. Moreover, medium-size pets tend to get adopted better than other pets of different sizes. And as we thought, healthy is a key for the adoption speed. From the logistic model, sterilized and vaccinated pets in good condition are highly likely to be adopted.
 ### KNN Model
 ```{r}
 library(class)
@@ -197,6 +199,7 @@ We checked all the affecting variables and substituted the breed factor with mix
 
 ### ANN Model
 ```{r}
+# The setup 
 anndata <- read.csv("train.csv")
 anndata$Name <- NULL
 anndata$State <- NULL
@@ -226,8 +229,8 @@ anndata$AdoptionSpeed <- NULL
 anndata$AdoptionSpeed <- response
 ```
 
-##### Normalize Data
 ```{r}
+# Normalize data
 anndata_random <- anndata[sample(nrow(anndata)), ]
 
 normalize <- function(x) { 
@@ -391,4 +394,8 @@ Accuracy
 ```
 
 We can use the stacked model to predict the adoption speed with the best accuracy. With around 96% accuracy, we are sure that this model can help animal shelters around the world in getting stray animals get adopted with in their best condition. Predicting the pet’s adoption speed will benefit companies in terms of resources optimization. This includes pets’ medical appointments with veterinarians. If they know how long will a pet be adopted, they can budget the food distribution, manage spaces for the pets and if they should place more pets for adoption.
+
+This report also offers valueable insights on how related business can manage the inventory better. There are factors including *Sterilized*, *Health*, *Vaccinated* which can have impacts on the adoption speed. These are adoption centers owners can make a difference in helping the animal, helping future owners, and eventually helping the adoptiong progress.
+
+We hope our efforts can help the global efforts to encourge more people to stay at home to enjoy time with their pets! 
 

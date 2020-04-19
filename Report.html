@@ -369,19 +369,14 @@ summary {
 </div>
 
 
-<p>CONTENTS: 1. <a href="#introduction">Introduction</a> 2. <a href="#data-exploration">Data Exploration</a> 3. [Prediction Models]: + <a href="#logistic-regression-model">Logistic Regression Model</a> + <a href="#knn-model">KNN Model</a> + <a href="#svm-model">SVM Model</a> + <a href="#ann-model">ANN Model</a> + <a href="#decision-tree">Decision Tree</a><br />
-+ <a href="#boosting">Boosting</a> + <a href="#bagging">Bagging</a> + <a href="#stacked-model">Stacked Model</a> 4. <a href="#conclusion">Conclusion</a></p>
+<p>CONTENTS: 1. <a href="#introduction">Introduction</a> 2. <a href="#data-exploration">Data Exploration</a> 3. <a href="#prediction-model">Prediction Model</a>: + <a href="#logistic-regression-model">Logistic Regression Model</a> + <a href="#knn-model">KNN Model</a> + <a href="#svm-model">SVM Model</a> + <a href="#ann-model">ANN Model</a> + <a href="#decision-tree">Decision Tree</a> + <a href="#boosting">Boosting</a> + <a href="#bagging">Bagging</a> + <a href="#stacked-model">Stacked Model</a> 4. <a href="#conclusion">Conclusion</a></p>
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>Pet adoption problem has recently drawn people’s attention, as more people want to adopt a pet during the global pandemic. It is important for animal shelters and related business to predict how soon pets can find their owner. We want to build data models using R to help with the predictions. The dataset to moltivate this study is from <a href="https://www.kaggle.com/c/petfinder-adoption-prediction/data" class="uri">https://www.kaggle.com/c/petfinder-adoption-prediction/data</a>, which contain data for cats and dogs. Specifically, we want to predict how soon a pet can be adopted, based on various features including type, gender, health, etc.</p>
-<p>When we received the data, we made slight changes to the data to better fit our models. We did not require the information of the pets’ second breed. Instead, we changed this information to whether the pet is a mixed breed or if it’s a pure breed. We also change the ranges of the response variable, pets’ adoption speed. We were given adoption speed of the following:</p>
-<p>0 - Pet was adopted on the same day as it was listed. 1 - Pet was adopted between 1 and 7 days (1st week) after being listed. 2 - Pet was adopted between 8 and 30 days (1st month) after being listed. 3 - Pet was adopted between 31 and 90 days (2nd &amp; 3rd month) after being listed. 4 - No adoption after 100 days of being listed. (There are no pets in this dataset that waited between 90 and 100 days).</p>
-<p>We infer that it is more beneficial for animal shelters and animal-related businesses to have information whether pets were adopted within a month or they will be adopted more than a month or never get adopted. This is because we believe that accounting are mostly done monthly. Hence, we change the response variable, pets’ adoption speed, into just 2 groups: 1) Adopted within a month (31 days) or 2) Adopted after a month (31 days) or not adopted.</p>
+<p>Pet adoption problem has recently drawn people’s attention, as more people want to adopt a pet during the global pandemic. It is important for animal shelters and related business to predict how soon pets can find their owner. We want to build data models using R to help with the predictions. The dataset to moltivate this study is from <a href="https://www.kaggle.com/c/petfinder-adoption-prediction/data" class="uri">https://www.kaggle.com/c/petfinder-adoption-prediction/data</a>, which contain data for cats and dogs. Specifically, we want to predict how soon a pet can be adopted, based on various features including type, gender, health, etc. We also want to explore the dataset to find if there is anything interesting or surprising.</p>
 </div>
 <div id="data-exploration" class="section level2">
 <h2>Data Exploration</h2>
-<div id="interesting-insights" class="section level3">
-<h3>Interesting Insights</h3>
+<p>We want to ### Interesting Insights</p>
 <div id="what-are-the-most-popular-names-for-pets" class="section level4">
 <h4>What are the most popular names for pets?</h4>
 <pre><code>## 
@@ -452,9 +447,11 @@ summary {
 ## 10 Puppy      45      2.89</code></pre>
 <p>Among the top 5 popular names for dogs are Lucky, puppies, Blackie, Bobby and Maxare. Dogs with those names were adopted faster than others.</p>
 </div>
-</div>
 <div id="data-cleaning" class="section level3">
 <h3>Data Cleaning</h3>
+<p>When we considered the data for prediction models, we made slight changes to the data to better fit our models. We did not require the information of the pets’ second breed. Instead, we changed this information to whether the pet is a mixed breed or if it’s a pure breed. We also change the ranges of the response variable, pets’ adoption speed. We were given adoption speed of the following:</p>
+<p>0 - Pet was adopted on the same day as it was listed. 1 - Pet was adopted between 1 and 7 days (1st week) after being listed. 2 - Pet was adopted between 8 and 30 days (1st month) after being listed. 3 - Pet was adopted between 31 and 90 days (2nd &amp; 3rd month) after being listed. 4 - No adoption after 100 days of being listed. (There are no pets in this dataset that waited between 90 and 100 days).</p>
+<p>We infer that it is more beneficial for animal shelters and animal-related businesses to have information whether pets were adopted within a month or they will be adopted more than a month or never get adopted. This is because we believe that accounting are mostly done monthly. Hence, we change the response variable, pets’ adoption speed, into just 2 groups: 1) Adopted within a month (31 days) or 2) Adopted after a month (31 days) or not adopted.</p>
 <pre class="r"><code>pet &lt;- read.csv(&quot;train.csv&quot;)
 pet$Name &lt;- NULL
 pet$State &lt;- NULL
