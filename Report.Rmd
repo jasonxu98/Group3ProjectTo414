@@ -398,5 +398,7 @@ We can use the stacked model to predict the adoption speed have the best accurac
 
 This report also offers valueable insights on how related business can manage the inventory better. There are factors including *Sterilized*, *Health*, *Vaccinated* which can have impacts on the adoption speed. These are adoption centers owners can make a difference in helping the animal, helping future owners, and eventually helping the adoptiong progress. It is also suggested for shelters to give names to the pets, even generalized names like kitten/puppy seems to work well, or popular name for male dog like "Max". 
 
+There are limitations in our studies. For example, the original data also comes with photos of pets. We believe future studies including computer vision technologies can further help with the prediction.
+
 We hope our efforts can help the global efforts to encourge more people to stay at home to enjoy time with their pets! 
 
