@@ -1,6 +1,6 @@
 ---
 title: "Report"
-author: "Yunjia Xu"
+author: "Arsyad, Athilah, Jen Lyn, Rongqing, Yunjia"
 date: "3/25/2020"
 output: html_document
 ---
