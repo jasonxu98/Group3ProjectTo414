@@ -14,41 +14,30 @@ library(kernlab)
 ```
 
 CONTENTS:
-1. [Introduction]
-2. [Data Exploration]
-3. [Prediction Models]:
-    + [Logistic Regression Model]
-    + [KNN Model]
-    + [SVM Model]
-    + [ANN Model]
-    + [Decision Tree]       
-    + [Boosting]
-    + [Bagging]
-    + [Stacked Model]
-4. [Conclusion]
+1. [Introduction]\n
+2. [Data Exploration]\n
+3. [Prediction Model]:\n
+    + [Logistic Regression Model]\n
+    + [KNN Model]\n
+    + [SVM Model]\n
+    + [ANN Model]\n
+    + [Decision Tree]\n       
+    + [Boosting]\n
+    + [Bagging]\n
+    + [Stacked Model]\n
+4. [Conclusion]\n
 
 
 ## Introduction
 
-Pet adoption problem has recently drawn people's attention, as more people want to adopt a pet during the global pandemic. It is important for animal shelters and related business to predict how soon pets can find their owner. We want to build data models using R to help with the predictions. The dataset to moltivate this study is from https://www.kaggle.com/c/petfinder-adoption-prediction/data, which contain data for cats and dogs. Specifically, we want to predict how soon a pet can be adopted, based on various features including type, gender, health, etc.
-
-When we received the data, we made slight changes to the data to better fit our models. We did not require the information of the pets' second breed. Instead, we changed this information to whether the pet is a mixed breed or if it's a pure breed. We also change the ranges of the response variable, pets' adoption speed. We were given adoption speed of the following:
-
-0 - Pet was adopted on the same day as it was listed. 
-1 - Pet was adopted between 1 and 7 days (1st week) after being listed. 
-2 - Pet was adopted between 8 and 30 days (1st month) after being listed. 
-3 - Pet was adopted between 31 and 90 days (2nd & 3rd month) after being listed. 
-4 - No adoption after 100 days of being listed. (There are no pets in this dataset that waited between 90 and 100 days).
-
-We infer that it is more beneficial for animal shelters and animal-related businesses to have information whether pets were adopted within a month or they will be adopted more than a month or never get adopted. This is because we believe that accounting are mostly done monthly. Hence, we change the response variable, pets' adoption speed, into just 2 groups: 1) Adopted within a month (31 days) or 2) Adopted after a month (31 days) or not adopted.
-
+Pet adoption problem has recently drawn people's attention, as more people want to adopt a pet during the global pandemic. It is important for animal shelters and related business to predict how soon pets can find their owner. We want to build data models using R to help with the predictions. The dataset to moltivate this study is from https://www.kaggle.com/c/petfinder-adoption-prediction/data, which contain data for cats and dogs. Specifically, we want to predict how soon a pet can be adopted, based on various features including type, gender, health, etc. We also want to explore the dataset to find if there is anything interesting or surprising.
 
 ## Data Exploration
-
+We want to 
 ### Interesting Insights
 
 #### What are the most popular names for pets?
-```{r}
+```{r, echo= TRUE}
 pet <- read.csv("train.csv")
 library(dplyr)
 catbyname <- pet %>% filter(Type == 2 & Name != "" & Name != "No Name")%>% group_by(Name) %>% summarize(total = n(), avg_speed = mean(AdoptionSpeed)) %>% arrange(desc(total)) %>% slice(1:10)
@@ -57,7 +46,7 @@ catbyname
 10 Most Popular Cats' Name: Kittens, Kitty, Baby, Mimi, Kitten, Ginger, Tiger, Kiki, Snowy, Blackie
 
 
-```{r}
+```{r, echo= TRUE}
 dogbyname <- pet %>% filter(Type == 1 & Name != "" & Name != "No Name") %>% group_by(Name) %>% summarize(total = n(), avg_speed = mean(AdoptionSpeed)) %>% arrange(desc(total)) %>% slice(1:10)
 dogbyname
 ```
@@ -65,14 +54,14 @@ dogbyname
 
 #### What are the names for pets that got adopted faster than others?
 
-```{r}
+```{r, echo= TRUE}
 catbyspeed <- catbyname %>% arrange(avg_speed)
 catbyspeed
 ```
 
 Among the top 5 popular names for cats are Blackie, Mimi, Tiger, Kitty and Kitten. Cats with such names were adopted faster than other cats with different names.
 
-```{r}
+```{r, echo= TRUE}
 dogbyspeed <- dogbyname %>% arrange(avg_speed)
 dogbyspeed
 ```
@@ -80,8 +69,19 @@ dogbyspeed
 Among the top 5 popular names for dogs are Lucky, puppies, Blackie, Bobby and Maxare. Dogs with those names were adopted faster than others.
 
 ### Data Cleaning
+When we considered the data for prediction models, we made slight changes to the data to better fit our models. We did not require the information of the pets' second breed. Instead, we changed this information to whether the pet is a mixed breed or if it's a pure breed. We also change the ranges of the response variable, pets' adoption speed. We were given adoption speed of the following:
+
+0 - Pet was adopted on the same day as it was listed. 
+1 - Pet was adopted between 1 and 7 days (1st week) after being listed. 
+2 - Pet was adopted between 8 and 30 days (1st month) after being listed. 
+3 - Pet was adopted between 31 and 90 days (2nd & 3rd month) after being listed. 
+4 - No adoption after 100 days of being listed. (There are no pets in this dataset that waited between 90 and 100 days).
+
+We infer that it is more beneficial for animal shelters and animal-related businesses to have information whether pets were adopted within a month or they will be adopted more than a month or never get adopted. This is because we believe that accounting are mostly done monthly. Hence, we change the response variable, pets' adoption speed, into just 2 groups: 1) Adopted within a month (31 days) or 2) Adopted after a month (31 days) or not adopted.
 ```{r, echo= TRUE}
 pet <- read.csv("train.csv")
+
+# Remove 
 pet$Name <- NULL
 pet$State <- NULL
 pet$RescuerID <- NULL
