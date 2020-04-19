@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
@@ -158,6 +158,7 @@ glm_acc
 ```
 
 From the logistic regression model, we can see that *type*, *age*, *breed*, *gender*, *color*,*size*, *FurLength*, *Sterilized*, *Health*, *Vaccinated* and *quantity* are some important variables that influence the speed of adoption. Interestingly, we can see that cats, on average, are adopted more quickly than dogs. It is much harder for male pets to be adopted than female pets, or a group of mixed pets. Moreover, medium-size pets tend to get adopted better than other pets of different sizes. And as we thought, healthy is a key for the adoption speed. From the logistic model, sterilized and vaccinated pets in good condition are highly likely to be adopted.
+
 ### KNN Model
 ```{r}
 library(class)
@@ -395,7 +396,7 @@ Accuracy
 
 We can use the stacked model to predict the adoption speed with the best accuracy. With around 96% accuracy, we are sure that this model can help animal shelters around the world in getting stray animals get adopted with in their best condition. Predicting the pet’s adoption speed will benefit companies in terms of resources optimization. This includes pets’ medical appointments with veterinarians. If they know how long will a pet be adopted, they can budget the food distribution, manage spaces for the pets and if they should place more pets for adoption.
 
-This report also offers valueable insights on how related business can manage the inventory better. There are factors including *Sterilized*, *Health*, *Vaccinated* which can have impacts on the adoption speed. These are adoption centers owners can make a difference in helping the animal, helping future owners, and eventually helping the adoptiong progress.
+This report also offers valueable insights on how related business can manage the inventory better. There are factors including *Sterilized*, *Health*, *Vaccinated* which can have impacts on the adoption speed. These are adoption centers owners can make a difference in helping the animal, helping future owners, and eventually helping the adoptiong progress. It is also suggested for shelters to give names to the pets, even generalized names like kitten/puppy seems to work well, or popular name for male dog like "Max". 
 
 We hope our efforts can help the global efforts to encourge more people to stay at home to enjoy time with their pets! 
 
