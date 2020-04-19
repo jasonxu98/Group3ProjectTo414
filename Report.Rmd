@@ -380,7 +380,7 @@ stacked_acc<- mean(stacked_pred == test_labels)
 stacked_acc
 plot(stacked)
 ```
-As expected, the accuracy rate of this stacked model is `r stacked_acc` which is an improvement from the highest accuracy rate, KNN's (`r knn_acc`).
+The accuracy rate of this stacked model is `r stacked_acc` which is not an improvement from the previously highest accuracy rate, KNN's (`r knn_acc`). This is expected because there is little room for improvements in the higher 90% range.
 
 ## Conclusion
 
@@ -394,7 +394,7 @@ Accuracy<-data.frame( "Model" =c("Logistic Regression", "KNN", "SVM", "ANN",
 Accuracy
 ```
 
-We can use the stacked model to predict the adoption speed with the best accuracy. With around 96% accuracy, we are sure that this model can help animal shelters around the world in getting stray animals get adopted with in their best condition. Predicting the pet’s adoption speed will benefit companies in terms of resources optimization. This includes pets’ medical appointments with veterinarians. If they know how long will a pet be adopted, they can budget the food distribution, manage spaces for the pets and if they should place more pets for adoption.
+We can use the stacked model to predict the adoption speed have the best accuracy, along with the KNN model. With around 96% accuracy on the testing set, we are sure that this model can help animal shelters around the world in getting stray animals get adopted with in their best condition. Predicting the pet’s adoption speed will benefit companies in terms of resources optimization. This includes pets’ medical appointments with veterinarians. If they know how long will a pet be adopted, they can budget the food distribution, manage spaces for the pets and if they should place more pets for adoption.
 
 This report also offers valueable insights on how related business can manage the inventory better. There are factors including *Sterilized*, *Health*, *Vaccinated* which can have impacts on the adoption speed. These are adoption centers owners can make a difference in helping the animal, helping future owners, and eventually helping the adoptiong progress. It is also suggested for shelters to give names to the pets, even generalized names like kitten/puppy seems to work well, or popular name for male dog like "Max". 
 
