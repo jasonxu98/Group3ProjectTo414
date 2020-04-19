@@ -369,16 +369,19 @@ summary {
 </div>
 
 
-<p>CONTENTS: 1. <a href="#introduction">Introduction</a> 2. <a href="#data-exploration">Data Exploration</a> 3. <a href="#prediction-model">Prediction Model</a>: + <a href="#logistic-regression-model">Logistic Regression Model</a> + <a href="#knn-model">KNN Model</a> + <a href="#svm-model">SVM Model</a> + <a href="#ann-model">ANN Model</a> + <a href="#decision-tree">Decision Tree</a> + <a href="#boosting">Boosting</a> + <a href="#bagging">Bagging</a> + <a href="#stacked-model">Stacked Model</a> 4. <a href="#conclusion">Conclusion</a></p>
+<p>CONTENTS: 1. <a href="#introduction">Introduction</a><br /> 2. <a href="#data-exploration">Data Exploration</a><br /> 3. <a href="#prediction-model">Prediction Model</a>:<br /> + <a href="#logistic-regression-model">Logistic Regression Model</a><br /> + [KNN Model]<br /> + <a href="#svm-model">SVM Model</a><br /> + <a href="#ann-model">ANN Model</a><br /> + <a href="#decision-tree">Decision Tree</a><br /> + <a href="#boosting">Boosting</a><br /> + <a href="#bagging">Bagging</a><br /> + <a href="#stacked-model">Stacked Model</a><br /> 4. <a href="#conclusion">Conclusion</a><br /></p>
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <p>Pet adoption problem has recently drawn people’s attention, as more people want to adopt a pet during the global pandemic. It is important for animal shelters and related business to predict how soon pets can find their owner. We want to build data models using R to help with the predictions. The dataset to moltivate this study is from <a href="https://www.kaggle.com/c/petfinder-adoption-prediction/data" class="uri">https://www.kaggle.com/c/petfinder-adoption-prediction/data</a>, which contain data for cats and dogs. Specifically, we want to predict how soon a pet can be adopted, based on various features including type, gender, health, etc. We also want to explore the dataset to find if there is anything interesting or surprising.</p>
 </div>
 <div id="data-exploration" class="section level2">
 <h2>Data Exploration</h2>
-<p>We want to ### Interesting Insights</p>
+<div id="interesting-insights" class="section level3">
+<h3>Interesting Insights</h3>
 <div id="what-are-the-most-popular-names-for-pets" class="section level4">
 <h4>What are the most popular names for pets?</h4>
+<pre class="r"><code>pet &lt;- read.csv(&quot;train.csv&quot;)
+library(dplyr)</code></pre>
 <pre><code>## 
 ## Attaching package: &#39;dplyr&#39;</code></pre>
 <pre><code>## The following objects are masked from &#39;package:stats&#39;:
@@ -387,6 +390,8 @@ summary {
 <pre><code>## The following objects are masked from &#39;package:base&#39;:
 ## 
 ##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>catbyname &lt;- pet %&gt;% filter(Type == 2 &amp; Name != &quot;&quot; &amp; Name != &quot;No Name&quot;)%&gt;% group_by(Name) %&gt;% summarize(total = n(), avg_speed = mean(AdoptionSpeed)) %&gt;% arrange(desc(total)) %&gt;% slice(1:10)
+catbyname</code></pre>
 <pre><code>## # A tibble: 10 x 3
 ##    Name    total avg_speed
 ##    &lt;fct&gt;   &lt;int&gt;     &lt;dbl&gt;
@@ -401,6 +406,8 @@ summary {
 ##  9 Snowy      19      2.42
 ## 10 Blackie    18      2.11</code></pre>
 <p>10 Most Popular Cats’ Name: Kittens, Kitty, Baby, Mimi, Kitten, Ginger, Tiger, Kiki, Snowy, Blackie</p>
+<pre class="r"><code>dogbyname &lt;- pet %&gt;% filter(Type == 1 &amp; Name != &quot;&quot; &amp; Name != &quot;No Name&quot;) %&gt;% group_by(Name) %&gt;% summarize(total = n(), avg_speed = mean(AdoptionSpeed)) %&gt;% arrange(desc(total)) %&gt;% slice(1:10)
+dogbyname</code></pre>
 <pre><code>## # A tibble: 10 x 3
 ##    Name    total avg_speed
 ##    &lt;fct&gt;   &lt;int&gt;     &lt;dbl&gt;
@@ -418,6 +425,8 @@ summary {
 </div>
 <div id="what-are-the-names-for-pets-that-got-adopted-faster-than-others" class="section level4">
 <h4>What are the names for pets that got adopted faster than others?</h4>
+<pre class="r"><code>catbyspeed &lt;- catbyname %&gt;% arrange(avg_speed)
+catbyspeed</code></pre>
 <pre><code>## # A tibble: 10 x 3
 ##    Name    total avg_speed
 ##    &lt;fct&gt;   &lt;int&gt;     &lt;dbl&gt;
@@ -432,6 +441,8 @@ summary {
 ##  9 Baby       34      2.68
 ## 10 Kiki       19      2.79</code></pre>
 <p>Among the top 5 popular names for cats are Blackie, Mimi, Tiger, Kitty and Kitten. Cats with such names were adopted faster than other cats with different names.</p>
+<pre class="r"><code>dogbyspeed &lt;- dogbyname %&gt;% arrange(avg_speed)
+dogbyspeed</code></pre>
 <pre><code>## # A tibble: 10 x 3
 ##    Name    total avg_speed
 ##    &lt;fct&gt;   &lt;int&gt;     &lt;dbl&gt;
@@ -447,12 +458,15 @@ summary {
 ## 10 Puppy      45      2.89</code></pre>
 <p>Among the top 5 popular names for dogs are Lucky, puppies, Blackie, Bobby and Maxare. Dogs with those names were adopted faster than others.</p>
 </div>
+</div>
 <div id="data-cleaning" class="section level3">
 <h3>Data Cleaning</h3>
 <p>When we considered the data for prediction models, we made slight changes to the data to better fit our models. We did not require the information of the pets’ second breed. Instead, we changed this information to whether the pet is a mixed breed or if it’s a pure breed. We also change the ranges of the response variable, pets’ adoption speed. We were given adoption speed of the following:</p>
 <p>0 - Pet was adopted on the same day as it was listed. 1 - Pet was adopted between 1 and 7 days (1st week) after being listed. 2 - Pet was adopted between 8 and 30 days (1st month) after being listed. 3 - Pet was adopted between 31 and 90 days (2nd &amp; 3rd month) after being listed. 4 - No adoption after 100 days of being listed. (There are no pets in this dataset that waited between 90 and 100 days).</p>
 <p>We infer that it is more beneficial for animal shelters and animal-related businesses to have information whether pets were adopted within a month or they will be adopted more than a month or never get adopted. This is because we believe that accounting are mostly done monthly. Hence, we change the response variable, pets’ adoption speed, into just 2 groups: 1) Adopted within a month (31 days) or 2) Adopted after a month (31 days) or not adopted.</p>
 <pre class="r"><code>pet &lt;- read.csv(&quot;train.csv&quot;)
+
+# Remove unrelated data
 pet$Name &lt;- NULL
 pet$State &lt;- NULL
 pet$RescuerID &lt;- NULL
@@ -469,10 +483,14 @@ pet$Dewormed &lt;- as.factor(pet$Dewormed)
 pet$Sterilized &lt;- as.factor(pet$Sterilized)
 pet$Health &lt;- as.factor(pet$Health)
 
-
+# Classify &quot;mixed breed&quot; pets
 pet$mixedbreed &lt;- ifelse(pet$Breed2 == 0, 0,1)
 pet$Breed2 &lt;- NULL
 pet$mixedbreed &lt;- as.factor(pet$mixedbreed)
+
+# Reclassify the AdoptionSpeed into binary format
+pet$AdoptionSpeed &lt;- ifelse(pet$AdoptionSpeed == 0 | pet$AdoptionSpeed == 1 | pet$AdoptionSpeed == 2, 0,1 )
+
 str(pet)</code></pre>
 <pre><code>## &#39;data.frame&#39;:    14993 obs. of  19 variables:
 ##  $ Type         : Factor w/ 2 levels &quot;1&quot;,&quot;2&quot;: 2 2 1 1 1 2 2 1 2 2 ...
@@ -492,12 +510,12 @@ str(pet)</code></pre>
 ##  $ Fee          : int  100 0 0 150 0 0 300 0 0 0 ...
 ##  $ VideoAmt     : int  0 0 0 0 0 0 0 0 0 0 ...
 ##  $ PhotoAmt     : num  1 2 7 8 3 2 3 9 6 2 ...
-##  $ AdoptionSpeed: int  2 0 3 2 2 2 1 3 1 4 ...
+##  $ AdoptionSpeed: num  0 0 1 0 0 0 0 1 0 1 ...
 ##  $ mixedbreed   : Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 1 1 1 1 1 1 2 1 1 1 ...</code></pre>
 </div>
 <div id="normalizing-data" class="section level3">
 <h3>Normalizing Data</h3>
-<pre class="r"><code>pet$AdoptionSpeed &lt;- ifelse(pet$AdoptionSpeed == 0 | pet$AdoptionSpeed == 1 | pet$AdoptionSpeed == 2, 0,1 )
+<pre class="r"><code># Prepare normalized dataset for potential use
 pet_random &lt;- pet[sample(nrow(pet)), ]
 
 normalize &lt;- function(x) { 
@@ -545,7 +563,8 @@ pet_norm$AdoptionSpeed &lt;- pet$AdoptSpeed</code></pre>
 </div>
 <div id="preparing-dataset" class="section level3">
 <h3>Preparing Dataset</h3>
-<pre class="r"><code>set.seed(3)
+<pre class="r"><code># Split the dataset for 80% training and 20% testing
+set.seed(3)
 trainid &lt;- sample(1:nrow(pet_norm), .8*nrow(pet_norm))
 train &lt;- pet_norm[trainid,]
 test &lt;- pet_norm[-trainid,]
@@ -599,10 +618,7 @@ test_labels &lt;- test$AdoptionSpeed</code></pre>
 ##        &#39;Positive&#39; Class : 0               
 ## </code></pre>
 <pre><code>## [1] 0.6268756</code></pre>
-<p>From the logistic regression model, we can see that <em>type</em>, <em>age</em>, <em>breed</em>, <em>gender</em>, <em>color</em>,<em>size</em>, <em>FurLength</em>, <em>Sterilized</em>, <em>Health</em>, <em>Vaccinated</em> and <em>quantity</em> are some important variables that influence the speed of adoption. Interestingly, we can see that cats, on average, are adopted more quickly than dogs. It is much harder for male pets to be adopted than other genders (female and mixed). Moreover, medium-size pets tend to get adopted better than other pets of different sizes. And as we thought, healthy is a key for the adoption speed. From the logistic model, sterilized and vaccinated pets in good condition are highly likely to be adopted.</p>
-</div>
-<div id="knn-model" class="section level3">
-<h3>KNN Model</h3>
+<p>From the logistic regression model, we can see that <em>type</em>, <em>age</em>, <em>breed</em>, <em>gender</em>, <em>color</em>,<em>size</em>, <em>FurLength</em>, <em>Sterilized</em>, <em>Health</em>, <em>Vaccinated</em> and <em>quantity</em> are some important variables that influence the speed of adoption. Interestingly, we can see that cats, on average, are adopted more quickly than dogs. It is much harder for male pets to be adopted than female pets, or a group of mixed pets. Moreover, medium-size pets tend to get adopted better than other pets of different sizes. And as we thought, healthy is a key for the adoption speed. From the logistic model, sterilized and vaccinated pets in good condition are highly likely to be adopted. ### KNN Model</p>
 <pre><code>## Warning: package &#39;gmodels&#39; was built under R version 3.6.3</code></pre>
 <pre><code>## 
 ##  
@@ -678,8 +694,6 @@ test_labels &lt;- test$AdoptionSpeed</code></pre>
 </div>
 <div id="ann-model" class="section level3">
 <h3>ANN Model</h3>
-<div id="normalize-data" class="section level5">
-<h5>Normalize Data</h5>
 <pre><code>## Warning: package &#39;neuralnet&#39; was built under R version 3.6.3</code></pre>
 <pre><code>## 
 ## Attaching package: &#39;neuralnet&#39;</code></pre>
@@ -729,7 +743,6 @@ test_labels &lt;- test$AdoptionSpeed</code></pre>
 ## </code></pre>
 <pre><code>## [1] 0.6432144</code></pre>
 <p>From the ANN model, we can see that the accuracy for predicting the adoption speed of the pets is 0.6432144. This is not a very high accuracy level, however, it is compatible with other models. We can improve this model by increasing the hidden neurons of the model. However, doing so will affect the time taken for the model to run and will only increase the accuracy by a little.</p>
-</div>
 </div>
 <div id="decision-tree" class="section level3">
 <h3>Decision Tree</h3>
@@ -833,6 +846,8 @@ test_labels &lt;- test$AdoptionSpeed</code></pre>
 ## 7             Bagging     0.6205402
 ## 8       Stacked Model     0.9663221</code></pre>
 <p>We can use the stacked model to predict the adoption speed with the best accuracy. With around 96% accuracy, we are sure that this model can help animal shelters around the world in getting stray animals get adopted with in their best condition. Predicting the pet’s adoption speed will benefit companies in terms of resources optimization. This includes pets’ medical appointments with veterinarians. If they know how long will a pet be adopted, they can budget the food distribution, manage spaces for the pets and if they should place more pets for adoption.</p>
+<p>This report also offers valueable insights on how related business can manage the inventory better. There are factors including <em>Sterilized</em>, <em>Health</em>, <em>Vaccinated</em> which can have impacts on the adoption speed. These are adoption centers owners can make a difference in helping the animal, helping future owners, and eventually helping the adoptiong progress.</p>
+<p>We hope our efforts can help the global efforts to encourge more people to stay at home to enjoy time with their pets!</p>
 </div>
 
 
